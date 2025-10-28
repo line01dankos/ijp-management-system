@@ -164,12 +164,23 @@
                     </div>
                     
                     <!-- Chart Section -->
-                    <div class="bg-white overflow-hidden shadow-xl rounded-lg mb-8">
-                        <div class="px-6 py-4 border-b border-gray-200">
-                            <h3 class="text-lg font-medium text-gray-900">Statistik IJP per Departemen</h3>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                        <div class="bg-white overflow-hidden shadow-xl rounded-lg">
+                            <div class="px-6 py-4 border-b border-gray-200">
+                                <h3 class="text-lg font-medium text-gray-900">Statistik IJP per Departemen</h3>
+                            </div>
+                            <div class="p-6">
+                                <canvas id="ijpChart" width="400" height="200"></canvas>
+                            </div>
                         </div>
-                        <div class="p-6">
-                            <canvas id="ijpChart" width="400" height="200"></canvas>
+                        
+                        <div class="bg-white overflow-hidden shadow-xl rounded-lg">
+                            <div class="px-6 py-4 border-b border-gray-200">
+                                <h3 class="text-lg font-medium text-gray-900">Distribusi Tipe IJP per Departemen</h3>
+                            </div>
+                            <div class="p-6">
+                                <canvas id="ijpTypeChart" width="400" height="200"></canvas>
+                            </div>
                         </div>
                     </div>
 
@@ -440,6 +451,7 @@
         let repairData = [];
         let switchingData = [];
         let chartInstance = null;
+        let typeChartInstance = null;
 
         // Database functions
         async function loadAllData() {
@@ -761,6 +773,7 @@
         function updateDashboard() {
             updateScoreboard();
             updateChart();
+            updateTypeChart();
             updateIJPList();
         }
 
@@ -850,6 +863,80 @@
                         title: {
                             display: true,
                             text: 'Statistik IJP per Departemen'
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateTypeChart() {
+            const ctx = document.getElementById('ijpTypeChart').getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (typeChartInstance) {
+                typeChartInstance.destroy();
+            }
+            
+            // Group data by department and type
+            const departments = ['Line 01A', 'Line 01B', 'Line 02', 'Line 03', 'Line 04', 'Line 05', 'Line 07'];
+            const ijpTypes = ['PX', 'PXR', 'RX1', 'RX2', 'UX Single', 'UX Twin'];
+            
+            const typeStats = {};
+            departments.forEach(dept => {
+                typeStats[dept] = {};
+                ijpTypes.forEach(type => {
+                    typeStats[dept][type] = ijpData.filter(ijp => 
+                        ijp.departemen === dept && ijp.tipeIJP === type
+                    ).length;
+                });
+            });
+            
+            // Create datasets for each IJP type
+            const datasets = ijpTypes.map((type, index) => {
+                const colors = [
+                    'rgba(59, 130, 246, 0.8)',   // Blue
+                    'rgba(34, 197, 94, 0.8)',    // Green
+                    'rgba(251, 191, 36, 0.8)',   // Yellow
+                    'rgba(239, 68, 68, 0.8)',    // Red
+                    'rgba(147, 51, 234, 0.8)',   // Purple
+                    'rgba(236, 72, 153, 0.8)'    // Pink
+                ];
+                
+                return {
+                    label: type,
+                    data: departments.map(dept => typeStats[dept][type]),
+                    backgroundColor: colors[index % colors.length],
+                    borderColor: colors[index % colors.length].replace('0.8', '1'),
+                    borderWidth: 1
+                };
+            });
+            
+            typeChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: departments,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            stacked: false
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Distribusi Tipe IJP per Departemen'
                         }
                     }
                 }
@@ -1276,5 +1363,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9959182de6e9f879',t:'MTc2MTY0MDQ3MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'995934f213c2a077',t:'MTc2MTY0MTY0OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
