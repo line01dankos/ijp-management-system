@@ -562,14 +562,13 @@
                 const currentTime = currentIJP.cummulative_time || 0;
                 const newCummulativeTime = currentTime + monitoringData.additionalTime;
                 
+                // Save to monitoring_log with existing column structure
                 const { data, error } = await supabase
                     .from('monitoring_log')
                     .insert([{
                         inisial_pic: monitoringData.inisialPIC,
                         serial_number: monitoringData.serialNumber,
-                        additional_time: monitoringData.additionalTime,
-                        previous_time: currentTime,
-                        new_cummulative_time: newCummulativeTime
+                        cummulative_time: newCummulativeTime
                     }])
                     .select();
                 
@@ -955,8 +954,8 @@
                             timestamp: log.created_at,
                             pic: log.inisial_pic,
                             serial: log.serial_number,
-                            description: `Update monitoring: +${log.additional_time || log.cummulative_time} jam`,
-                            details: `Previous: ${log.previous_time || 0} jam → New: ${log.new_cummulative_time || log.cummulative_time} jam`
+                            description: `Update monitoring: ${log.cummulative_time} jam total`,
+                            details: `Cummulative time diupdate menjadi ${log.cummulative_time} jam`
                         });
                     });
                 }
@@ -1277,5 +1276,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9958e553f272cbe1',t:'MTc2MTYzODM4OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9959182de6e9f879',t:'MTc2MTY0MDQ3MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
