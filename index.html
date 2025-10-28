@@ -88,6 +88,81 @@
                 <div class="px-4 py-6 sm:px-0">
                     <h2 class="text-2xl font-bold text-gray-900 mb-6">Dashboard IJP Management</h2>
                     
+                    <!-- Scoreboard Section -->
+                    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+                        <div class="bg-white overflow-hidden shadow-xl rounded-lg">
+                            <div class="p-5">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                            <span class="text-white font-bold text-sm">📊</span>
+                                        </div>
+                                    </div>
+                                    <div class="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt class="text-sm font-medium text-gray-500 truncate">Total IJP</dt>
+                                            <dd class="text-3xl font-bold text-gray-900" id="totalIJP">0</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white overflow-hidden shadow-xl rounded-lg">
+                            <div class="p-5">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                            <span class="text-white font-bold text-sm">✅</span>
+                                        </div>
+                                    </div>
+                                    <div class="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt class="text-sm font-medium text-gray-500 truncate">IJP Aktif</dt>
+                                            <dd class="text-3xl font-bold text-green-600" id="totalAktif">0</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white overflow-hidden shadow-xl rounded-lg">
+                            <div class="p-5">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                                            <span class="text-white font-bold text-sm">⚠️</span>
+                                        </div>
+                                    </div>
+                                    <div class="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt class="text-sm font-medium text-gray-500 truncate">Wajib Ganti Filter</dt>
+                                            <dd class="text-3xl font-bold text-yellow-600" id="totalGantiFilter">0</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white overflow-hidden shadow-xl rounded-lg">
+                            <div class="p-5">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                                            <span class="text-white font-bold text-sm">❌</span>
+                                        </div>
+                                    </div>
+                                    <div class="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt class="text-sm font-medium text-gray-500 truncate">IJP Rusak</dt>
+                                            <dd class="text-3xl font-bold text-red-600" id="totalRusak">0</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- Chart Section -->
                     <div class="bg-white overflow-hidden shadow-xl rounded-lg mb-8">
                         <div class="px-6 py-4 border-b border-gray-200">
@@ -331,6 +406,7 @@
         let monitoringData = [];
         let repairData = [];
         let switchingData = [];
+        let chartInstance = null;
 
         // Database functions
         async function loadAllData() {
@@ -635,12 +711,30 @@
 
         // Dashboard functions
         function updateDashboard() {
+            updateScoreboard();
             updateChart();
             updateIJPList();
         }
 
+        function updateScoreboard() {
+            const totalIJP = ijpData.length;
+            const totalAktif = ijpData.filter(ijp => ijp.status === 'AKTIF').length;
+            const totalGantiFilter = ijpData.filter(ijp => ijp.cummulativeTime > 9500).length;
+            const totalRusak = ijpData.filter(ijp => ijp.status === 'RUSAK').length;
+
+            document.getElementById('totalIJP').textContent = totalIJP;
+            document.getElementById('totalAktif').textContent = totalAktif;
+            document.getElementById('totalGantiFilter').textContent = totalGantiFilter;
+            document.getElementById('totalRusak').textContent = totalRusak;
+        }
+
         function updateChart() {
             const ctx = document.getElementById('ijpChart').getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
             
             // Group data by department
             const departmentStats = {};
@@ -656,7 +750,7 @@
                 };
             });
             
-            new Chart(ctx, {
+            chartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: departments,
@@ -766,7 +860,16 @@
             });
         }
 
-        // Form handlers with Supabase integration
+        // Refresh all data and UI
+        async function refreshAllData() {
+            await loadAllData();
+            updateDashboard();
+            updateMonitoringDropdown();
+            updateRepairDropdown();
+            updateSwitchingDropdowns();
+        }
+
+        // Form handlers with Supabase integration and auto-refresh
         document.getElementById('ijpForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -788,7 +891,7 @@
                 };
                 
                 await saveIJP(newIJP);
-                await loadAllData(); // Reload data
+                await refreshAllData(); // Auto refresh all data
                 this.reset();
                 
                 showNotification('IJP berhasil ditambahkan!', 'success');
@@ -818,7 +921,7 @@
                 };
                 
                 await saveMonitoring(monitoringData);
-                await loadAllData(); // Reload data
+                await refreshAllData(); // Auto refresh all data
                 this.reset();
                 
                 showNotification('Data monitoring berhasil disimpan!', 'success');
@@ -850,7 +953,7 @@
                 };
                 
                 await saveRepair(repairData);
-                await loadAllData(); // Reload data
+                await refreshAllData(); // Auto refresh all data
                 this.reset();
                 
                 showNotification('Data repair berhasil disimpan!', 'success');
@@ -881,7 +984,7 @@
                 };
                 
                 await saveSwitching(switchingData);
-                await loadAllData(); // Reload data
+                await refreshAllData(); // Auto refresh all data
                 this.reset();
                 
                 showNotification('Data penukaran berhasil disimpan!', 'success');
@@ -966,5 +1069,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9958609453e8f847',t:'MTc2MTYzMjk1MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9958db4a76e9cde9',t:'MTc2MTYzNzk3Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
