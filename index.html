@@ -6,6 +6,7 @@
     <title>Sistem Management IJP Hitachi</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
         body {
             box-sizing: border-box;
@@ -49,6 +50,9 @@
                     <div class="flex items-center space-x-4">
                         <span class="text-sm text-gray-500">Sinkronisasi: GitHub + Supabase</span>
                         <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                        <button onclick="showDatabaseInfo()" class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                            Info Database
+                        </button>
                     </div>
                 </div>
             </div>
@@ -316,35 +320,209 @@
     </div>
 
     <script>
-        // Sample data structure
-        let ijpData = [
-            {
-                id: 1,
-                departemen: 'Line 01A',
-                inisialPIC: 'JD',
-                tipeIJP: 'PX',
-                lokasi: 'N 2510',
-                mesinUtama: 'Kunglong 5',
-                serialNumber: 'PX001A',
-                cummulativeTime: 9700,
-                status: 'AKTIF'
-            },
-            {
-                id: 2,
-                departemen: 'Line 02',
-                inisialPIC: 'SM',
-                tipeIJP: 'RX1',
-                lokasi: 'S 1205',
-                mesinUtama: 'Heidelberg 3',
-                serialNumber: 'RX001B',
-                cummulativeTime: 8500,
-                status: 'AKTIF'
-            }
-        ];
+        // Supabase configuration
+        const SUPABASE_URL = 'https://asvbztfrzczgrehmihqf.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzdmJ6dGZyemN6Z3JlaG1paHFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2MjQ2OTMsImV4cCI6MjA3NzIwMDY5M30.w10VaVZIX3CH8IPPsuEtNKqsHMaNWE9FPN3G9mVTsHE';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        // Data arrays - will be populated from Supabase
+        let ijpData = [];
         let monitoringData = [];
         let repairData = [];
         let switchingData = [];
+
+        // Database functions
+        async function loadAllData() {
+            try {
+                // Load IJP data
+                const { data: ijps, error: ijpError } = await supabase
+                    .from('ijp_master')
+                    .select('*')
+                    .order('serial_number');
+                
+                if (ijpError) throw ijpError;
+                
+                // Transform data to match our structure
+                ijpData = ijps ? ijps.map(ijp => ({
+                    id: ijp.id,
+                    departemen: ijp.departemen,
+                    inisialPIC: ijp.inisial_pic,
+                    tipeIJP: ijp.tipe_ijp,
+                    lokasi: ijp.lokasi,
+                    mesinUtama: ijp.mesin_utama,
+                    serialNumber: ijp.serial_number,
+                    cummulativeTime: ijp.cummulative_time || 0,
+                    status: ijp.status || 'AKTIF'
+                })) : [];
+
+                // Load monitoring data
+                const { data: monitoring, error: monitoringError } = await supabase
+                    .from('monitoring_log')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (monitoringError) throw monitoringError;
+                monitoringData = monitoring || [];
+
+                // Load repair data
+                const { data: repairs, error: repairError } = await supabase
+                    .from('repair_log')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (repairError) throw repairError;
+                repairData = repairs || [];
+
+                // Load switching data
+                const { data: switching, error: switchingError } = await supabase
+                    .from('switching_log')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (switchingError) throw switchingError;
+                switchingData = switching || [];
+
+                console.log('Data berhasil dimuat dari Supabase');
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                // Use sample data if database fails
+                ijpData = [
+                    {
+                        id: 1,
+                        departemen: 'Line 01A',
+                        inisialPIC: 'JD',
+                        tipeIJP: 'PX',
+                        lokasi: 'N 2510',
+                        mesinUtama: 'Kunglong 5',
+                        serialNumber: 'PX001A',
+                        cummulativeTime: 9700,
+                        status: 'AKTIF'
+                    },
+                    {
+                        id: 2,
+                        departemen: 'Line 02',
+                        inisialPIC: 'SM',
+                        tipeIJP: 'RX1',
+                        lokasi: 'S 1205',
+                        mesinUtama: 'Heidelberg 3',
+                        serialNumber: 'RX001B',
+                        cummulativeTime: 8500,
+                        status: 'AKTIF'
+                    }
+                ];
+            }
+        }
+
+        async function saveIJP(ijpData) {
+            try {
+                const { data, error } = await supabase
+                    .from('ijp_master')
+                    .insert([{
+                        departemen: ijpData.departemen,
+                        inisial_pic: ijpData.inisialPIC,
+                        tipe_ijp: ijpData.tipeIJP,
+                        lokasi: ijpData.lokasi,
+                        mesin_utama: ijpData.mesinUtama,
+                        serial_number: ijpData.serialNumber,
+                        cummulative_time: ijpData.cummulativeTime || 0,
+                        status: ijpData.status || 'AKTIF'
+                    }])
+                    .select();
+                
+                if (error) throw error;
+                return data[0];
+            } catch (error) {
+                console.error('Error saving IJP:', error);
+                throw error;
+            }
+        }
+
+        async function saveMonitoring(monitoringData) {
+            try {
+                const { data, error } = await supabase
+                    .from('monitoring_log')
+                    .insert([{
+                        inisial_pic: monitoringData.inisialPIC,
+                        serial_number: monitoringData.serialNumber,
+                        cummulative_time: monitoringData.cummulativeTime
+                    }])
+                    .select();
+                
+                if (error) throw error;
+                
+                // Update IJP cummulative time
+                await supabase
+                    .from('ijp_master')
+                    .update({ cummulative_time: monitoringData.cummulativeTime })
+                    .eq('serial_number', monitoringData.serialNumber);
+                
+                return data[0];
+            } catch (error) {
+                console.error('Error saving monitoring:', error);
+                throw error;
+            }
+        }
+
+        async function saveRepair(repairData) {
+            try {
+                const { data, error } = await supabase
+                    .from('repair_log')
+                    .insert([{
+                        inisial_pic: repairData.inisialPIC,
+                        serial_number: repairData.serialNumber,
+                        kerusakan: repairData.kerusakan,
+                        action: repairData.action,
+                        ganti_filter_set: repairData.gantiFilterSet
+                    }])
+                    .select();
+                
+                if (error) throw error;
+                
+                // Reset cummulative time if filter changed
+                if (repairData.gantiFilterSet) {
+                    await supabase
+                        .from('ijp_master')
+                        .update({ cummulative_time: 0 })
+                        .eq('serial_number', repairData.serialNumber);
+                }
+                
+                return data[0];
+            } catch (error) {
+                console.error('Error saving repair:', error);
+                throw error;
+            }
+        }
+
+        async function saveSwitching(switchingData) {
+            try {
+                const { data, error } = await supabase
+                    .from('switching_log')
+                    .insert([{
+                        inisial_pic: switchingData.inisialPIC,
+                        serial_diganti: switchingData.serialDiganti,
+                        serial_pengganti: switchingData.serialPengganti,
+                        alasan_penggantian: switchingData.alasanPenggantian
+                    }])
+                    .select();
+                
+                if (error) throw error;
+                
+                // Update status if reason contains "rusak"
+                if (switchingData.alasanPenggantian.toLowerCase().includes('rusak')) {
+                    await supabase
+                        .from('ijp_master')
+                        .update({ status: 'RUSAK' })
+                        .eq('serial_number', switchingData.serialDiganti);
+                }
+                
+                return data[0];
+            } catch (error) {
+                console.error('Error saving switching:', error);
+                throw error;
+            }
+        }
 
         // Auto uppercase functions
         function setupAutoUppercase() {
@@ -588,120 +766,205 @@
             });
         }
 
-        // Form handlers
-        document.getElementById('ijpForm').addEventListener('submit', function(e) {
+        // Form handlers with Supabase integration
+        document.getElementById('ijpForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const formData = new FormData(this);
-            const newIJP = {
-                id: ijpData.length + 1,
-                departemen: formData.get('departemen'),
-                inisialPIC: formData.get('inisialPIC').toUpperCase(),
-                tipeIJP: formData.get('tipeIJP'),
-                lokasi: formData.get('lokasi').toUpperCase(),
-                mesinUtama: formData.get('mesinUtama'),
-                serialNumber: formData.get('serialNumber').toUpperCase(),
-                cummulativeTime: 0,
-                status: 'AKTIF'
-            };
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Menyimpan...';
             
-            ijpData.push(newIJP);
-            this.reset();
-            
-            // Show success message
-            alert('IJP berhasil ditambahkan!');
+            try {
+                const formData = new FormData(this);
+                const newIJP = {
+                    departemen: formData.get('departemen'),
+                    inisialPIC: formData.get('inisialPIC').toUpperCase(),
+                    tipeIJP: formData.get('tipeIJP'),
+                    lokasi: formData.get('lokasi').toUpperCase(),
+                    mesinUtama: formData.get('mesinUtama'),
+                    serialNumber: formData.get('serialNumber').toUpperCase(),
+                    cummulativeTime: 0,
+                    status: 'AKTIF'
+                };
+                
+                await saveIJP(newIJP);
+                await loadAllData(); // Reload data
+                this.reset();
+                
+                showNotification('IJP berhasil ditambahkan!', 'success');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Gagal menyimpan IJP: ' + error.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Simpan IJP';
+            }
         });
 
-        document.getElementById('monitoringForm').addEventListener('submit', function(e) {
+        document.getElementById('monitoringForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const formData = new FormData(this);
-            const serialNumber = formData.get('monitoringSerial');
-            const newTime = parseInt(formData.get('cummulativeTime'));
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Menyimpan...';
             
-            // Update IJP data
-            const ijpIndex = ijpData.findIndex(ijp => ijp.serialNumber === serialNumber);
-            if (ijpIndex !== -1) {
-                ijpData[ijpIndex].cummulativeTime = newTime;
+            try {
+                const formData = new FormData(this);
+                const monitoringData = {
+                    inisialPIC: formData.get('monitoringPIC').toUpperCase(),
+                    serialNumber: formData.get('monitoringSerial'),
+                    cummulativeTime: parseInt(formData.get('cummulativeTime'))
+                };
+                
+                await saveMonitoring(monitoringData);
+                await loadAllData(); // Reload data
+                this.reset();
+                
+                showNotification('Data monitoring berhasil disimpan!', 'success');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Gagal menyimpan monitoring: ' + error.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Simpan Monitoring';
             }
-            
-            // Add monitoring record
-            monitoringData.push({
-                id: monitoringData.length + 1,
-                inisialPIC: formData.get('monitoringPIC').toUpperCase(),
-                serialNumber: serialNumber,
-                cummulativeTime: newTime,
-                timestamp: new Date()
-            });
-            
-            this.reset();
-            alert('Data monitoring berhasil disimpan!');
         });
 
-        document.getElementById('repairForm').addEventListener('submit', function(e) {
+        document.getElementById('repairForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const formData = new FormData(this);
-            const serialNumber = formData.get('repairSerial');
-            const gantiFilter = formData.get('gantiFilterSet');
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Menyimpan...';
             
-            // Reset cummulative time if filter changed
-            if (gantiFilter) {
-                const ijpIndex = ijpData.findIndex(ijp => ijp.serialNumber === serialNumber);
-                if (ijpIndex !== -1) {
-                    ijpData[ijpIndex].cummulativeTime = 0;
-                }
+            try {
+                const formData = new FormData(this);
+                const repairData = {
+                    inisialPIC: formData.get('repairPIC').toUpperCase(),
+                    serialNumber: formData.get('repairSerial'),
+                    kerusakan: formData.get('kerusakan'),
+                    action: formData.get('action'),
+                    gantiFilterSet: !!formData.get('gantiFilterSet')
+                };
+                
+                await saveRepair(repairData);
+                await loadAllData(); // Reload data
+                this.reset();
+                
+                showNotification('Data repair berhasil disimpan!', 'success');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Gagal menyimpan repair: ' + error.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Simpan Repair';
             }
-            
-            // Add repair record
-            repairData.push({
-                id: repairData.length + 1,
-                inisialPIC: formData.get('repairPIC').toUpperCase(),
-                serialNumber: serialNumber,
-                kerusakan: formData.get('kerusakan'),
-                action: formData.get('action'),
-                gantiFilterSet: !!gantiFilter,
-                timestamp: new Date()
-            });
-            
-            this.reset();
-            alert('Data repair berhasil disimpan!');
         });
 
-        document.getElementById('switchingForm').addEventListener('submit', function(e) {
+        document.getElementById('switchingForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const formData = new FormData(this);
-            const serialDiganti = formData.get('serialDiganti');
-            const alasan = formData.get('alasanPenggantian');
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Menyimpan...';
             
-            // Check if reason contains "rusak"
-            if (alasan.toLowerCase().includes('rusak')) {
-                const ijpIndex = ijpData.findIndex(ijp => ijp.serialNumber === serialDiganti);
-                if (ijpIndex !== -1) {
-                    ijpData[ijpIndex].status = 'RUSAK';
-                }
+            try {
+                const formData = new FormData(this);
+                const switchingData = {
+                    inisialPIC: formData.get('switchingPIC').toUpperCase(),
+                    serialDiganti: formData.get('serialDiganti'),
+                    serialPengganti: formData.get('serialPengganti'),
+                    alasanPenggantian: formData.get('alasanPenggantian')
+                };
+                
+                await saveSwitching(switchingData);
+                await loadAllData(); // Reload data
+                this.reset();
+                
+                showNotification('Data penukaran berhasil disimpan!', 'success');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Gagal menyimpan penukaran: ' + error.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Simpan Penukaran';
             }
-            
-            // Add switching record
-            switchingData.push({
-                id: switchingData.length + 1,
-                inisialPIC: formData.get('switchingPIC').toUpperCase(),
-                serialDiganti: serialDiganti,
-                serialPengganti: formData.get('serialPengganti'),
-                alasanPenggantian: alasan,
-                timestamp: new Date()
-            });
-            
-            this.reset();
-            alert('Data penukaran berhasil disimpan!');
         });
+
+        // Notification function
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm ${
+                type === 'success' ? 'bg-green-500 text-white' : 
+                type === 'error' ? 'bg-red-500 text-white' : 
+                'bg-blue-500 text-white'
+            }`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+
+        // Database info function
+        function showDatabaseInfo() {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
+                    <h3 class="text-lg font-bold mb-4">Struktur Database Supabase</h3>
+                    <div class="space-y-4 text-sm">
+                        <div>
+                            <h4 class="font-semibold text-blue-600">Tabel: ijp_master</h4>
+                            <p class="text-gray-600">Kolom: id, departemen, inisial_pic, tipe_ijp, lokasi, mesin_utama, serial_number, cummulative_time, status, created_at</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-blue-600">Tabel: monitoring_log</h4>
+                            <p class="text-gray-600">Kolom: id, inisial_pic, serial_number, cummulative_time, created_at</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-blue-600">Tabel: repair_log</h4>
+                            <p class="text-gray-600">Kolom: id, inisial_pic, serial_number, kerusakan, action, ganti_filter_set, created_at</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-blue-600">Tabel: switching_log</h4>
+                            <p class="text-gray-600">Kolom: id, inisial_pic, serial_diganti, serial_pengganti, alasan_penggantian, created_at</p>
+                        </div>
+                        <div class="bg-yellow-50 p-3 rounded">
+                            <p class="text-yellow-800"><strong>Catatan:</strong> Pastikan tabel-tabel ini sudah dibuat di Supabase dengan struktur yang sesuai. Sistem akan menggunakan data sample jika koneksi database gagal.</p>
+                        </div>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        Tutup
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             setupAutoUppercase();
-            updateDashboard();
+            
+            // Show loading indicator
+            showNotification('Memuat data dari Supabase...', 'info');
+            
+            try {
+                await loadAllData();
+                updateDashboard();
+                showNotification('Data berhasil dimuat!', 'success');
+            } catch (error) {
+                console.error('Initialization error:', error);
+                showNotification('Menggunakan data sample karena koneksi database gagal', 'error');
+                updateDashboard();
+            }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99585accc6a7f847',t:'MTc2MTYzMjcxNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9958609453e8f847',t:'MTc2MTYzMjk1MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
