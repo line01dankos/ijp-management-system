@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IJP Management System v1.2</title>
+    <title>IJP Management System v21</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -640,6 +640,51 @@
             font-size: 1.1rem;
         }
         
+        /* Settings Tab Styles */
+        .settings-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .settings-section h3 {
+            color: #2d3748;
+            margin: 0 0 20px 0;
+            font-size: 1.3rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .info-item {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .info-label {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+        
+        .info-value {
+            color: #2d3748;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        
         @media (max-width: 768px) {
             .container {
                 padding: 15px;
@@ -692,8 +737,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🏭 IJP Hitachi Management System</h1>
-            <div class="version-badge">v1.2 - by TSUP</div>
+            <h1>🏭 IJP Management System</h1>
+            <div class="version-badge">v21 - Advanced Supabase Integration</div>
             <div id="connectionStatus" class="connection-status status-disconnected">
                 <span>🔴</span> Offline Mode
             </div>
@@ -707,6 +752,7 @@
             <button class="tab" onclick="showTab('switching')">🔄 Input Penukaran Unit IJP</button>
             <button class="tab" onclick="showTab('history')">📋 History</button>
             <button class="tab" onclick="showTab('backup')">💾 Backup & Recovery</button>
+            <button class="tab" onclick="showTab('settings')">⚙️ Settings</button>
         </div>
         
         <!-- Dashboard Tab -->
@@ -949,15 +995,11 @@
             <div id="historyList"></div>
         </div>
         
-
-        
-
-        
         <!-- Backup & Recovery Tab -->
         <div id="backup" class="tab-content">
             <div class="backup-header">
                 <h2>💾 Backup & Recovery Data</h2>
-                <p>Kelola backup dan restore data IJP Hitachi Management System dengan mudah dan aman</p>
+                <p>Kelola backup dan restore data IJP Management System dengan mudah dan aman</p>
             </div>
             
             <div class="backup-warning">
@@ -1043,6 +1085,76 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Settings Tab -->
+        <div id="settings" class="tab-content">
+            <div class="settings-section">
+                <h3>🔗 Supabase Configuration</h3>
+                <div class="form-group">
+                    <label for="supabaseUrl">Supabase URL:</label>
+                    <input type="url" id="supabaseUrl" placeholder="https://your-project.supabase.co">
+                </div>
+                
+                <div class="form-group">
+                    <label for="supabaseKey">Supabase Anon Key:</label>
+                    <input type="password" id="supabaseKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <button class="btn" onclick="testSupabaseConnection()">🔍 Test Connection</button>
+                    <button class="btn btn-success" onclick="saveSupabaseConfig()">💾 Save Config</button>
+                    <button class="btn btn-danger" onclick="clearSupabaseConfig()">🗑️ Clear Config</button>
+                </div>
+                
+                <div id="supabaseStatus"></div>
+            </div>
+            
+            <div class="settings-section">
+                <h3>📊 System Information</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Connection Status</div>
+                        <div class="info-value" id="connectionInfo">Offline</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">App Version</div>
+                        <div class="info-value">v21</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Last Sync</div>
+                        <div class="info-value" id="lastSyncInfo">Never</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Browser Storage</div>
+                        <div class="info-value" id="storageInfo">Available</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="settings-section">
+                <h3>🔄 Data Management</h3>
+                <div style="margin-bottom: 20px;">
+                    <button class="btn" onclick="syncAllData()">☁️ Sync to Supabase</button>
+                    <button class="btn btn-secondary" onclick="downloadFromSupabase()">📥 Download from Supabase</button>
+                    <button class="btn btn-warning" onclick="loadSampleData()">📋 Load Sample Data</button>
+                </div>
+                
+                <div id="supabaseDataInfo"></div>
+                
+                <div style="margin-top: 20px;">
+                    <button class="btn btn-secondary" onclick="checkSupabaseData()">📊 Check Supabase Data</button>
+                    <button class="btn btn-danger" id="deleteSupabaseBtn" onclick="deleteAllSupabaseData()" disabled>🗑️ Delete All Supabase Data</button>
+                </div>
+            </div>
+            
+            <div class="settings-section">
+                <h3>🔧 Recovery Tools</h3>
+                <p style="color: #64748b; margin-bottom: 20px;">
+                    Jika data hilang, coba recovery otomatis untuk mencari data lama di browser.
+                </p>
+                <button class="btn btn-warning" onclick="tryAutoRecovery()">🔍 Try Auto Recovery</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -1075,6 +1187,11 @@
                 try {
                     supabase = window.supabase.createClient(config.url, config.key);
                     updateConnectionStatus(true);
+                    
+                    // Load config to UI
+                    document.getElementById('supabaseUrl').value = config.url;
+                    document.getElementById('supabaseKey').value = config.key;
+                    
                     return true;
                 } catch (error) {
                     console.error('Failed to initialize Supabase:', error);
@@ -1151,6 +1268,7 @@
             initializeSupabase();
             
             showSuccessMessage('✅ Konfigurasi Supabase disimpan!');
+            updateSystemInfo();
         }
         
         function clearSupabaseConfig() {
@@ -1163,6 +1281,29 @@
             updateConnectionStatus(false);
             
             showSuccessMessage('✅ Konfigurasi Supabase dihapus!');
+            updateSystemInfo();
+        }
+        
+        function updateSystemInfo() {
+            const settings = getFromStorage(STORAGE_KEYS.settings) || {};
+            const lastSync = settings.lastSync ? new Date(settings.lastSync).toLocaleString('id-ID') : 'Never';
+            
+            if (document.getElementById('lastSyncInfo')) {
+                document.getElementById('lastSyncInfo').textContent = lastSync;
+            }
+            
+            // Check storage availability
+            try {
+                localStorage.setItem('test', 'test');
+                localStorage.removeItem('test');
+                if (document.getElementById('storageInfo')) {
+                    document.getElementById('storageInfo').textContent = 'Available';
+                }
+            } catch (e) {
+                if (document.getElementById('storageInfo')) {
+                    document.getElementById('storageInfo').textContent = 'Limited';
+                }
+            }
         }
         
         // Data Sync Functions
@@ -1294,10 +1435,10 @@
                 loadHistory();
             } else if (tabName === 'backup') {
                 updateBackupCounts();
+            } else if (tabName === 'settings') {
+                updateSystemInfo();
             }
         }
-        
-
         
         // Form Management
         document.getElementById('ijpForm').addEventListener('submit', async function(e) {
@@ -1461,8 +1602,6 @@
             resetSwitchingForm();
             loadAllData();
         });
-        
-
         
         function resetForm() {
             document.getElementById('ijpForm').reset();
@@ -1630,7 +1769,7 @@
                             beginAtZero: true,
                             title: {
                                 display: true,
-                                text: 'Σ IJP'
+                                text: 'Jumlah IJP'
                             }
                         }
                     },
@@ -1714,7 +1853,7 @@
                             beginAtZero: true,
                             title: {
                                 display: true,
-                                text: 'Σ IJP'
+                                text: 'Jumlah IJP'
                             },
                             ticks: {
                                 stepSize: 1
@@ -1771,8 +1910,6 @@
             const content = document.getElementById(`dept-${department}`);
             content.style.display = content.style.display === 'none' ? 'block' : 'none';
         }
-        
-
         
         // History Functions
         function loadHistory() {
@@ -2680,8 +2817,6 @@
             return false;
         }
         
-        // Event Listeners
-        
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize Supabase
@@ -2694,9 +2829,8 @@
                 loadAllData();
             }
             updateBackupCounts();
-            
-
+            updateSystemInfo();
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'995787fe778dfb86',t:'MTc2MTYyNDA3OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99579e7d95817a69',t:'MTc2MTYyNTAwMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
