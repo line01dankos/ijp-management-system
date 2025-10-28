@@ -48,11 +48,8 @@
                         </div>
                     </div>
                     <div class="flex items-center space-x-4">
-                        <span class="text-sm text-gray-500">Sinkronisasi: GitHub + Supabase</span>
                         <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                        <button onclick="showDatabaseInfo()" class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                            Info Database
-                        </button>
+                        <span class="text-sm text-gray-500">Online</span>
                     </div>
                 </div>
             </div>
@@ -76,6 +73,9 @@
                     </button>
                     <button onclick="showSection('input-switching')" class="nav-button px-4 py-4 text-sm font-medium text-gray-700 hover:text-blue-600 border-b-2 border-transparent hover:border-blue-600">
                         Input Penukaran Unit IJP
+                    </button>
+                    <button onclick="showSection('history')" class="nav-button px-4 py-4 text-sm font-medium text-gray-700 hover:text-blue-600 border-b-2 border-transparent hover:border-blue-600">
+                        History
                     </button>
                 </div>
             </div>
@@ -279,8 +279,9 @@
                                     </div>
 
                                     <div class="sm:col-span-2">
-                                        <label for="cummulativeTime" class="block text-sm font-medium text-gray-700">Cummulative Op. Time (hours)</label>
-                                        <input type="number" id="cummulativeTime" name="cummulativeTime" placeholder="Contoh: 9700" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                        <label for="additionalTime" class="block text-sm font-medium text-gray-700">Tambahan Op. Time (hours)</label>
+                                        <input type="number" id="additionalTime" name="additionalTime" placeholder="Contoh: 100 (akan ditambahkan ke cummulative time)" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                        <p class="mt-1 text-sm text-gray-500">Masukkan jam operasi tambahan yang akan ditambahkan ke total cummulative time</p>
                                     </div>
                                 </div>
 
@@ -387,6 +388,38 @@
                                     </button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Section -->
+            <div id="history" class="section hidden">
+                <div class="px-4 py-6 sm:px-0">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">History Aktivitas</h2>
+                    
+                    <div class="bg-white overflow-hidden shadow-xl rounded-lg">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <div class="flex justify-between items-center">
+                                <h3 class="text-lg font-medium text-gray-900">Log Semua Aktivitas</h3>
+                                <div class="flex space-x-2">
+                                    <select id="historyFilter" class="text-sm border border-gray-300 rounded px-2 py-1">
+                                        <option value="all">Semua Aktivitas</option>
+                                        <option value="ijp">Input IJP</option>
+                                        <option value="monitoring">Monitoring</option>
+                                        <option value="repair">Repair</option>
+                                        <option value="switching">Penukaran</option>
+                                    </select>
+                                    <button onclick="refreshHistory()" class="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">
+                                        Refresh
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div id="historyList" class="space-y-4">
+                                <!-- History will be populated here -->
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -517,21 +550,35 @@
 
         async function saveMonitoring(monitoringData) {
             try {
+                // Get current cummulative time first
+                const { data: currentIJP, error: fetchError } = await supabase
+                    .from('ijp_master')
+                    .select('cummulative_time')
+                    .eq('serial_number', monitoringData.serialNumber)
+                    .single();
+                
+                if (fetchError) throw fetchError;
+                
+                const currentTime = currentIJP.cummulative_time || 0;
+                const newCummulativeTime = currentTime + monitoringData.additionalTime;
+                
                 const { data, error } = await supabase
                     .from('monitoring_log')
                     .insert([{
                         inisial_pic: monitoringData.inisialPIC,
                         serial_number: monitoringData.serialNumber,
-                        cummulative_time: monitoringData.cummulativeTime
+                        additional_time: monitoringData.additionalTime,
+                        previous_time: currentTime,
+                        new_cummulative_time: newCummulativeTime
                     }])
                     .select();
                 
                 if (error) throw error;
                 
-                // Update IJP cummulative time
+                // Update IJP cummulative time (accumulate)
                 await supabase
                     .from('ijp_master')
-                    .update({ cummulative_time: monitoringData.cummulativeTime })
+                    .update({ cummulative_time: newCummulativeTime })
                     .eq('serial_number', monitoringData.serialNumber);
                 
                 return data[0];
@@ -639,6 +686,8 @@
                 updateSwitchingDropdowns();
             } else if (sectionId === 'dashboard') {
                 updateDashboard();
+            } else if (sectionId === 'history') {
+                updateHistory();
             }
         }
 
@@ -869,6 +918,162 @@
             updateSwitchingDropdowns();
         }
 
+        // History functions
+        async function loadHistoryData() {
+            try {
+                let allHistory = [];
+                
+                // Load IJP history
+                const { data: ijps } = await supabase
+                    .from('ijp_master')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (ijps) {
+                    ijps.forEach(ijp => {
+                        allHistory.push({
+                            type: 'ijp',
+                            timestamp: ijp.created_at,
+                            pic: ijp.inisial_pic,
+                            serial: ijp.serial_number,
+                            description: `Input IJP baru: ${ijp.tipe_ijp} - ${ijp.mesin_utama} (${ijp.departemen})`,
+                            details: `Lokasi: ${ijp.lokasi}, Status: ${ijp.status}`
+                        });
+                    });
+                }
+                
+                // Load monitoring history
+                const { data: monitoring } = await supabase
+                    .from('monitoring_log')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (monitoring) {
+                    monitoring.forEach(log => {
+                        allHistory.push({
+                            type: 'monitoring',
+                            timestamp: log.created_at,
+                            pic: log.inisial_pic,
+                            serial: log.serial_number,
+                            description: `Update monitoring: +${log.additional_time || log.cummulative_time} jam`,
+                            details: `Previous: ${log.previous_time || 0} jam → New: ${log.new_cummulative_time || log.cummulative_time} jam`
+                        });
+                    });
+                }
+                
+                // Load repair history
+                const { data: repairs } = await supabase
+                    .from('repair_log')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (repairs) {
+                    repairs.forEach(repair => {
+                        allHistory.push({
+                            type: 'repair',
+                            timestamp: repair.created_at,
+                            pic: repair.inisial_pic,
+                            serial: repair.serial_number,
+                            description: `Repair: ${repair.kerusakan.substring(0, 50)}...`,
+                            details: `Action: ${repair.action}${repair.ganti_filter_set ? ' | Filter Set diganti (Reset ke 0 jam)' : ''}`
+                        });
+                    });
+                }
+                
+                // Load switching history
+                const { data: switching } = await supabase
+                    .from('switching_log')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (switching) {
+                    switching.forEach(sw => {
+                        allHistory.push({
+                            type: 'switching',
+                            timestamp: sw.created_at,
+                            pic: sw.inisial_pic,
+                            serial: sw.serial_diganti,
+                            description: `Penukaran IJP: ${sw.serial_diganti} → ${sw.serial_pengganti}`,
+                            details: `Alasan: ${sw.alasan_penggantian}`
+                        });
+                    });
+                }
+                
+                // Sort by timestamp (newest first)
+                allHistory.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                
+                return allHistory;
+                
+            } catch (error) {
+                console.error('Error loading history:', error);
+                return [];
+            }
+        }
+
+        async function updateHistory() {
+            const historyData = await loadHistoryData();
+            const filter = document.getElementById('historyFilter').value;
+            const container = document.getElementById('historyList');
+            
+            const filteredHistory = filter === 'all' ? historyData : historyData.filter(item => item.type === filter);
+            
+            if (filteredHistory.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-8">Belum ada aktivitas</p>';
+                return;
+            }
+            
+            container.innerHTML = filteredHistory.map(item => {
+                const typeColors = {
+                    ijp: 'bg-blue-100 text-blue-800',
+                    monitoring: 'bg-green-100 text-green-800',
+                    repair: 'bg-orange-100 text-orange-800',
+                    switching: 'bg-purple-100 text-purple-800'
+                };
+                
+                const typeLabels = {
+                    ijp: 'INPUT IJP',
+                    monitoring: 'MONITORING',
+                    repair: 'REPAIR',
+                    switching: 'SWITCHING'
+                };
+                
+                const date = new Date(item.timestamp);
+                const formattedDate = date.toLocaleDateString('id-ID', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                return `
+                    <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full ${typeColors[item.type]}">
+                                        ${typeLabels[item.type]}
+                                    </span>
+                                    <span class="text-sm text-gray-500">${formattedDate}</span>
+                                </div>
+                                <h4 class="text-sm font-medium text-gray-900 mb-1">${item.description}</h4>
+                                <p class="text-sm text-gray-600 mb-2">${item.details}</p>
+                                <div class="flex items-center space-x-4 text-xs text-gray-500">
+                                    <span>PIC: ${item.pic}</span>
+                                    <span>Serial: ${item.serial}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function refreshHistory() {
+            await updateHistory();
+            showNotification('History berhasil direfresh!', 'success');
+        }
+
         // Form handlers with Supabase integration and auto-refresh
         document.getElementById('ijpForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -917,7 +1122,7 @@
                 const monitoringData = {
                     inisialPIC: formData.get('monitoringPIC').toUpperCase(),
                     serialNumber: formData.get('monitoringSerial'),
-                    cummulativeTime: parseInt(formData.get('cummulativeTime'))
+                    additionalTime: parseInt(formData.get('additionalTime'))
                 };
                 
                 await saveMonitoring(monitoringData);
@@ -1055,6 +1260,9 @@
         document.addEventListener('DOMContentLoaded', async function() {
             setupAutoUppercase();
             
+            // Setup history filter
+            document.getElementById('historyFilter').addEventListener('change', updateHistory);
+            
             // Show loading indicator
             showNotification('Memuat data dari Supabase...', 'info');
             
@@ -1069,5 +1277,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9958db4a76e9cde9',t:'MTc2MTYzNzk3Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9958e553f272cbe1',t:'MTc2MTYzODM4OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
