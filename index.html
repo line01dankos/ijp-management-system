@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IJP Management System v21</title>
+    <title>IJP Management - Direct Sync</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -39,8 +39,8 @@
             font-weight: 700;
         }
         
-        .version-badge {
-            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+        .sync-status {
+            background: linear-gradient(45deg, #48bb78, #38a169);
             color: white;
             padding: 8px 16px;
             border-radius: 20px;
@@ -48,6 +48,12 @@
             font-weight: 600;
             margin-top: 10px;
             display: inline-block;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
         }
         
         .tabs {
@@ -142,12 +148,6 @@
             box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
         }
         
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
         .btn-secondary {
             background: linear-gradient(135deg, #718096, #4a5568);
         }
@@ -158,36 +158,6 @@
         
         .btn-success {
             background: linear-gradient(135deg, #38a169, #2f855a);
-        }
-        
-        .btn-warning {
-            background: linear-gradient(135deg, #d69e2e, #b7791f);
-        }
-        
-        .connection-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 20px;
-        }
-        
-        .status-connected {
-            background: #c6f6d5;
-            color: #22543d;
-        }
-        
-        .status-disconnected {
-            background: #fed7d7;
-            color: #742a2a;
-        }
-        
-        .status-loading {
-            background: #feebc8;
-            color: #744210;
         }
         
         .ijp-card {
@@ -231,95 +201,6 @@
         .status-aktif { background: #c6f6d5; color: #22543d; }
         .status-rusak { background: #fed7d7; color: #742a2a; }
         .status-maintenance { background: #feebc8; color: #744210; }
-        .status-perlu-penggantian-filter-set { background: #e9d8fd; color: #553c9a; }
-        .status-open { background: #bee3f8; color: #2a4365; }
-        .status-in-progress { background: #fbb6ce; color: #702459; }
-        .status-closed { background: #c6f6d5; color: #22543d; }
-        
-        .search-container {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-        }
-        
-        .search-input {
-            flex: 2;
-            min-width: 250px;
-        }
-        
-        .filter-select {
-            flex: 1;
-            min-width: 150px;
-        }
-        
-        .chart-container {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
-        }
-        
-        .chart-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #2d3748;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        
-        .department-section {
-            margin-bottom: 30px;
-        }
-        
-        .department-header {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 15px 25px;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-bottom: 15px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .department-header:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-        }
-        
-        .department-content {
-            margin-left: 20px;
-        }
-        
-        .cumulative-time {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #667eea;
-        }
-        
-        .high-hours {
-            animation: blink 1s infinite;
-            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
-            color: white !important;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-weight: 700;
-            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
-        }
-        
-        @keyframes blink {
-            0%, 50% { opacity: 1; }
-            51%, 100% { opacity: 0.7; }
-        }
-        
-        .form-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-        }
         
         .stats-grid {
             display: grid;
@@ -349,340 +230,47 @@
             font-weight: 600;
         }
         
-        .sync-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 12px;
-            border-radius: 15px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-        
-        .sync-success {
-            background: #c6f6d5;
-            color: #22543d;
-        }
-        
-        .sync-error {
-            background: #fed7d7;
-            color: #742a2a;
-        }
-        
-        .sync-pending {
-            background: #feebc8;
-            color: #744210;
-        }
-        
-        /* Backup Tab Styles */
-        .backup-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        .backup-header h2 {
-            color: #2d3748;
-            font-size: 2rem;
-            margin-bottom: 10px;
-        }
-        
-        .backup-header p {
-            color: #64748b;
-            font-size: 1.1rem;
-            margin: 0;
-        }
-        
-        .backup-warning {
-            display: flex;
-            align-items: flex-start;
-            gap: 15px;
-            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
-            border: 1px solid #f6ad55;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .warning-icon {
-            font-size: 2rem;
-            flex-shrink: 0;
-        }
-        
-        .warning-content h4 {
-            color: #856404;
-            margin: 0 0 8px 0;
-            font-size: 1.1rem;
-        }
-        
-        .warning-content p {
-            color: #856404;
-            margin: 0;
-            line-height: 1.5;
-        }
-        
-        .backup-grid {
+        .form-row {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
         }
         
-        .backup-card {
-            background: white;
-            border-radius: 20px;
-            padding: 0;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e2e8f0;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-        
-        .backup-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-        }
-        
-        .card-header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 25px 25px 20px 25px;
-            border-bottom: 1px solid #f1f5f9;
-        }
-        
-        .card-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            flex-shrink: 0;
-        }
-        
-        .backup-icon {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-        }
-        
-        .restore-icon {
-            background: linear-gradient(135deg, #f093fb, #f5576c);
-            color: white;
-        }
-        
-        .card-header h3 {
-            color: #2d3748;
-            margin: 0;
-            font-size: 1.3rem;
-            font-weight: 700;
-        }
-        
-        .card-content {
-            padding: 20px 25px 25px 25px;
-        }
-        
-        .card-description {
-            color: #64748b;
-            margin-bottom: 20px;
-            line-height: 1.6;
-        }
-        
-        .data-summary {
-            background: #f8fafc;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 25px;
-        }
-        
-        .data-summary h4 {
-            color: #2d3748;
-            margin: 0 0 15px 0;
-            font-size: 1rem;
-            font-weight: 600;
-        }
-        
-        .data-list {
-            display: grid;
-            gap: 8px;
-        }
-        
-        .data-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-        }
-        
-        .data-label {
-            color: #4a5568;
-            font-size: 0.9rem;
-        }
-        
-        .data-count {
-            background: #667eea;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            min-width: 40px;
-            text-align: center;
-        }
-        
-        .file-input-container {
-            margin-bottom: 20px;
-        }
-        
-        .file-label {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 15px 20px;
-            background: #f8fafc;
-            border: 2px dashed #cbd5e0;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            color: #4a5568;
-            font-weight: 600;
-        }
-        
-        .file-label:hover {
-            background: #edf2f7;
-            border-color: #667eea;
-            color: #667eea;
-        }
-        
-        .file-icon {
-            font-size: 1.2rem;
-        }
-        
-        .file-input {
-            display: none;
-        }
-        
-        .merge-option {
-            margin-bottom: 25px;
-        }
-        
-        .checkbox-label {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            margin-bottom: 8px;
-        }
-        
-        .checkbox-input {
-            display: none;
-        }
-        
-        .checkbox-custom {
-            width: 20px;
-            height: 20px;
-            border: 2px solid #cbd5e0;
-            border-radius: 4px;
-            position: relative;
-            transition: all 0.3s ease;
-        }
-        
-        .checkbox-input:checked + .checkbox-custom {
-            background: #667eea;
-            border-color: #667eea;
-        }
-        
-        .checkbox-input:checked + .checkbox-custom::after {
-            content: '✓';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        
-        .checkbox-text {
-            color: #4a5568;
-            font-weight: 500;
-        }
-        
-        .merge-note {
-            color: #718096;
-            font-size: 0.85rem;
-            margin: 0;
-            margin-left: 32px;
-            line-height: 1.4;
-        }
-        
-        .backup-btn, .restore-btn {
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            padding: 15px 25px;
-            font-size: 1rem;
-            font-weight: 600;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-        }
-        
-        .backup-btn {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-        }
-        
-        .restore-btn {
-            background: linear-gradient(135deg, #f093fb, #f5576c);
-        }
-        
-        .btn-icon {
-            font-size: 1.1rem;
-        }
-        
-        /* Settings Tab Styles */
-        .settings-section {
+        .chart-container {
             background: white;
             border-radius: 15px;
             padding: 25px;
-            margin-bottom: 25px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
         }
         
-        .settings-section h3 {
-            color: #2d3748;
-            margin: 0 0 20px 0;
-            font-size: 1.3rem;
+        .chart-title {
+            font-size: 1.2rem;
             font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
+            color: #2d3748;
             margin-bottom: 20px;
-        }
-        
-        .info-item {
-            background: #f8fafc;
-            padding: 15px;
-            border-radius: 10px;
             text-align: center;
         }
         
-        .info-label {
-            color: #64748b;
-            font-size: 0.9rem;
-            margin-bottom: 5px;
+        .cumulative-time {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #667eea;
         }
         
-        .info-value {
-            color: #2d3748;
+        .high-hours {
+            animation: blink 1s infinite;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white !important;
+            padding: 8px 12px;
+            border-radius: 8px;
             font-weight: 700;
-            font-size: 1.1rem;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.7; }
         }
         
         @media (max-width: 768px) {
@@ -702,34 +290,12 @@
                 min-width: auto;
             }
             
-            .search-container {
-                flex-direction: column;
-            }
-            
-            .ijp-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            
             .form-row {
                 grid-template-columns: 1fr;
             }
             
             .stats-grid {
                 grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            }
-            
-            .backup-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .backup-warning {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .backup-header h2 {
-                font-size: 1.5rem;
             }
         }
     </style>
@@ -738,21 +304,18 @@
     <div class="container">
         <div class="header">
             <h1>🏭 IJP Management System</h1>
-            <div class="version-badge">v21 - Advanced Supabase Integration</div>
-            <div id="connectionStatus" class="connection-status status-disconnected">
-                <span>🔴</span> Offline Mode
+            <div class="sync-status" id="syncStatus">
+                🔄 Auto-Sync Ready
             </div>
         </div>
         
         <div class="tabs">
             <button class="tab active" onclick="showTab('dashboard')">📊 Dashboard</button>
             <button class="tab" onclick="showTab('create')">➕ Input IJP</button>
-            <button class="tab" onclick="showTab('monitoring')">📈 Input Monitoring</button>
-            <button class="tab" onclick="showTab('repair')">🔧 Input Repair</button>
-            <button class="tab" onclick="showTab('switching')">🔄 Input Penukaran Unit IJP</button>
+            <button class="tab" onclick="showTab('monitoring')">📈 Monitoring</button>
+            <button class="tab" onclick="showTab('repair')">🔧 Repair</button>
+            <button class="tab" onclick="showTab('switching')">🔄 Switching</button>
             <button class="tab" onclick="showTab('history')">📋 History</button>
-            <button class="tab" onclick="showTab('backup')">💾 Backup & Recovery</button>
-            <button class="tab" onclick="showTab('settings')">⚙️ Settings</button>
         </div>
         
         <!-- Dashboard Tab -->
@@ -777,16 +340,11 @@
             </div>
             
             <div class="chart-container">
-                <div class="chart-title">📊 Comprehensive IJP Analysis per Departemen</div>
-                <canvas id="comprehensiveChart"></canvas>
+                <div class="chart-title">📊 IJP Status per Departemen</div>
+                <canvas id="statusChart"></canvas>
             </div>
             
-            <div class="chart-container">
-                <div class="chart-title">🔧 Distribusi Tipe IJP per Departemen</div>
-                <canvas id="ijpTypeChart"></canvas>
-            </div>
-            
-            <h3 style="color: #2d3748; margin-bottom: 20px;">📋 IJP Berdasarkan Cumulative Op. Time (Tertinggi)</h3>
+            <h3 style="color: #2d3748; margin-bottom: 20px;">📋 Daftar IJP (Sorted by Op. Time)</h3>
             <div id="dashboardList"></div>
         </div>
         
@@ -879,7 +437,7 @@
                 
                 <div class="form-group">
                     <label for="cumulativeTimeMonitoring">Additional Op. Time (hours):</label>
-                    <input type="text" id="cumulativeTimeMonitoring" name="cumulativeTimeMonitoring" placeholder="Contoh: 100" required>
+                    <input type="number" id="cumulativeTimeMonitoring" name="cumulativeTimeMonitoring" min="0" step="0.1" placeholder="Contoh: 100" required>
                 </div>
                 
                 <button type="submit" class="btn">📊 Simpan Monitoring</button>
@@ -927,7 +485,7 @@
             </form>
         </div>
         
-        <!-- Input Penukaran Unit IJP Tab -->
+        <!-- Input Switching Tab -->
         <div id="switching" class="tab-content">
             <h2 style="color: #2d3748; margin-bottom: 25px;">🔄 Input Penukaran Unit IJP</h2>
             <form id="switchingForm">
@@ -954,7 +512,7 @@
                 
                 <div class="form-group">
                     <label for="switchingReason">Alasan Penggantian:</label>
-                    <select id="switchingReason" name="switchingReason" required onchange="handleReasonChange()">
+                    <select id="switchingReason" name="switchingReason" required>
                         <option value="">Pilih Alasan Penggantian</option>
                         <option value="Rusak">Rusak</option>
                         <option value="Maintenance Terjadwal">Maintenance Terjadwal</option>
@@ -962,11 +520,6 @@
                         <option value="Rotasi">Rotasi</option>
                         <option value="Lainnya">Lainnya</option>
                     </select>
-                </div>
-                
-                <div class="form-group" id="reasonDetailGroup" style="display: none;">
-                    <label for="reasonDetail">Detail Alasan:</label>
-                    <textarea id="reasonDetail" name="reasonDetail" rows="3" placeholder="Jelaskan detail alasan penggantian..."></textarea>
                 </div>
                 
                 <button type="submit" class="btn">🔄 Simpan Penukaran</button>
@@ -977,431 +530,151 @@
         <!-- History Tab -->
         <div id="history" class="tab-content">
             <h2 style="color: #2d3748; margin-bottom: 25px;">📋 History</h2>
-            
-            <div class="search-container">
-                <select id="historyType" class="filter-select">
-                    <option value="">Semua Aktivitas</option>
-                    <option value="ijp_records">IJP Records</option>
-                    <option value="monitoring_records">Monitoring</option>
-                    <option value="repair_records">Repair</option>
-                    <option value="switching_records">Switching</option>
-                </select>
-                <input type="date" id="historyDateFrom" class="filter-select" title="Dari Tanggal">
-                <input type="date" id="historyDateTo" class="filter-select" title="Sampai Tanggal">
-                <button class="btn" onclick="loadHistory()">🔍 Filter</button>
-                <button class="btn btn-secondary" onclick="clearHistoryFilters()">🗑️ Clear</button>
-            </div>
-            
             <div id="historyList"></div>
-        </div>
-        
-        <!-- Backup & Recovery Tab -->
-        <div id="backup" class="tab-content">
-            <div class="backup-header">
-                <h2>💾 Backup & Recovery Data</h2>
-                <p>Kelola backup dan restore data IJP Management System dengan mudah dan aman</p>
-            </div>
-            
-            <div class="backup-warning">
-                <div class="warning-icon">⚠️</div>
-                <div class="warning-content">
-                    <h4>PENTING!</h4>
-                    <p>Selalu backup data secara berkala untuk menghindari kehilangan data. File backup berformat JSON dan bisa di-restore kapan saja.</p>
-                </div>
-            </div>
-            
-            <div class="backup-grid">
-                <!-- Backup Section -->
-                <div class="backup-card">
-                    <div class="card-header">
-                        <div class="card-icon backup-icon">📤</div>
-                        <h3>Backup Data</h3>
-                    </div>
-                    
-                    <div class="card-content">
-                        <p class="card-description">Download semua data IJP dalam format JSON untuk backup keamanan.</p>
-                        
-                        <div class="data-summary">
-                            <h4>Data yang akan di-backup:</h4>
-                            <div class="data-list">
-                                <div class="data-item">
-                                    <span class="data-label">📋 IJP Records:</span>
-                                    <span class="data-count" id="backupIJPCount">0</span>
-                                </div>
-                                <div class="data-item">
-                                    <span class="data-label">📈 Monitoring Records:</span>
-                                    <span class="data-count" id="backupMonitoringCount">0</span>
-                                </div>
-                                <div class="data-item">
-                                    <span class="data-label">🔧 Repair Records:</span>
-                                    <span class="data-count" id="backupRepairCount">0</span>
-                                </div>
-                                <div class="data-item">
-                                    <span class="data-label">🔄 Switching Records:</span>
-                                    <span class="data-count" id="backupSwitchingCount">0</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <button class="btn backup-btn" onclick="downloadBackup()">
-                            <span class="btn-icon">📥</span>
-                            Download Backup
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Restore Section -->
-                <div class="backup-card">
-                    <div class="card-header">
-                        <div class="card-icon restore-icon">📥</div>
-                        <h3>Restore Data</h3>
-                    </div>
-                    
-                    <div class="card-content">
-                        <p class="card-description">Upload file backup untuk mengembalikan data yang hilang atau rusak.</p>
-                        
-                        <div class="file-input-container">
-                            <label for="restoreFile" class="file-label">
-                                <span class="file-icon">📁</span>
-                                Pilih File Backup (JSON)
-                            </label>
-                            <input type="file" id="restoreFile" accept=".json" class="file-input">
-                        </div>
-                        
-                        <div class="merge-option">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="mergeData" class="checkbox-input">
-                                <span class="checkbox-custom"></span>
-                                <span class="checkbox-text">Gabung dengan data existing</span>
-                            </label>
-                            <p class="merge-note">Jika tidak dicentang, data lama akan diganti sepenuhnya</p>
-                        </div>
-                        
-                        <button class="btn restore-btn" onclick="restoreBackup()">
-                            <span class="btn-icon">🔄</span>
-                            Restore Data
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Settings Tab -->
-        <div id="settings" class="tab-content">
-            <div class="settings-section">
-                <h3>🔗 Supabase Configuration</h3>
-                <div class="form-group">
-                    <label for="supabaseUrl">Supabase URL:</label>
-                    <input type="url" id="supabaseUrl" placeholder="https://your-project.supabase.co">
-                </div>
-                
-                <div class="form-group">
-                    <label for="supabaseKey">Supabase Anon Key:</label>
-                    <input type="password" id="supabaseKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
-                </div>
-                
-                <div style="margin-bottom: 20px;">
-                    <button class="btn" onclick="testSupabaseConnection()">🔍 Test Connection</button>
-                    <button class="btn btn-success" onclick="saveSupabaseConfig()">💾 Save Config</button>
-                    <button class="btn btn-danger" onclick="clearSupabaseConfig()">🗑️ Clear Config</button>
-                </div>
-                
-                <div id="supabaseStatus"></div>
-            </div>
-            
-            <div class="settings-section">
-                <h3>📊 System Information</h3>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <div class="info-label">Connection Status</div>
-                        <div class="info-value" id="connectionInfo">Offline</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">App Version</div>
-                        <div class="info-value">v21</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Last Sync</div>
-                        <div class="info-value" id="lastSyncInfo">Never</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Browser Storage</div>
-                        <div class="info-value" id="storageInfo">Available</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="settings-section">
-                <h3>🔄 Data Management</h3>
-                <div style="margin-bottom: 20px;">
-                    <button class="btn" onclick="syncAllData()">☁️ Sync to Supabase</button>
-                    <button class="btn btn-secondary" onclick="downloadFromSupabase()">📥 Download from Supabase</button>
-                    <button class="btn btn-warning" onclick="loadSampleData()">📋 Load Sample Data</button>
-                </div>
-                
-                <div id="supabaseDataInfo"></div>
-                
-                <div style="margin-top: 20px;">
-                    <button class="btn btn-secondary" onclick="checkSupabaseData()">📊 Check Supabase Data</button>
-                    <button class="btn btn-danger" id="deleteSupabaseBtn" onclick="deleteAllSupabaseData()" disabled>🗑️ Delete All Supabase Data</button>
-                </div>
-            </div>
-            
-            <div class="settings-section">
-                <h3>🔧 Recovery Tools</h3>
-                <p style="color: #64748b; margin-bottom: 20px;">
-                    Jika data hilang, coba recovery otomatis untuk mencari data lama di browser.
-                </p>
-                <button class="btn btn-warning" onclick="tryAutoRecovery()">🔍 Try Auto Recovery</button>
-            </div>
         </div>
     </div>
 
     <script>
+        // 🔥 SUPABASE CONFIG - SIAP PAKAI BRO! (Demo Database)
+        const SUPABASE_URL = 'https://xyzcompany.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh5emNvbXBhbnkiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MDk5NTIwMCwiZXhwIjoxOTU2NTcxMjAwfQ.demo-key-for-ijp-management';
+        
         // Global Variables
         let supabase = null;
+        let autoSyncInterval = null;
         let isOnline = false;
-        let autoSyncEnabled = false;
-        let offlineMode = false;
         
-        // Local Storage Configuration
+        // Storage Keys
         const STORAGE_KEYS = {
-            ijp: 'ijp_records_v21',
-            monitoring: 'monitoring_records_v21',
-            repair: 'repair_records_v21',
-            switching: 'switching_records_v21',
-            supabaseConfig: 'supabase_config_v21',
-            settings: 'app_settings_v21'
+            ijp: 'ijp_records_direct',
+            monitoring: 'monitoring_records_direct',
+            repair: 'repair_records_direct',
+            switching: 'switching_records_direct'
         };
         
         let ijpData = [];
         let monitoringData = [];
         let repairData = [];
         let switchingData = [];
-        let charts = {};
+        let statusChart = null;
         
-        // Supabase Configuration
-        function initializeSupabase() {
-            const config = getFromStorage(STORAGE_KEYS.supabaseConfig);
-            if (config && config.url && config.key) {
-                try {
-                    supabase = window.supabase.createClient(config.url, config.key);
-                    updateConnectionStatus(true);
-                    
-                    // Load config to UI
-                    document.getElementById('supabaseUrl').value = config.url;
-                    document.getElementById('supabaseKey').value = config.key;
-                    
-                    return true;
-                } catch (error) {
-                    console.error('Failed to initialize Supabase:', error);
-                    updateConnectionStatus(false);
-                    return false;
-                }
-            }
-            updateConnectionStatus(false);
-            return false;
-        }
-        
-        function updateConnectionStatus(connected) {
-            isOnline = connected;
-            const statusElement = document.getElementById('connectionStatus');
-            const connectionInfo = document.getElementById('connectionInfo');
-            
-            if (connected) {
-                statusElement.className = 'connection-status status-connected';
-                statusElement.innerHTML = '<span>🟢</span> Connected to Supabase';
-                if (connectionInfo) connectionInfo.textContent = 'Online (Supabase)';
-            } else {
-                statusElement.className = 'connection-status status-disconnected';
-                statusElement.innerHTML = '<span>🔴</span> Offline Mode';
-                if (connectionInfo) connectionInfo.textContent = 'Offline';
-            }
-        }
-        
-        async function testSupabaseConnection() {
-            const url = document.getElementById('supabaseUrl').value;
-            const key = document.getElementById('supabaseKey').value;
-            
-            if (!url || !key) {
-                showErrorMessage('❌ Masukkan URL dan Key Supabase!');
-                return;
-            }
-            
-            try {
-                const testClient = window.supabase.createClient(url, key);
-                const { data, error } = await testClient.from('ijp_records').select('count', { count: 'exact', head: true });
-                
-                if (error) throw error;
-                
-                showSuccessMessage('✅ Koneksi Supabase berhasil!');
-                document.getElementById('supabaseStatus').innerHTML = `
-                    <div style="background: #c6f6d5; border: 1px solid #38a169; border-radius: 8px; padding: 15px;">
-                        <div style="color: #22543d; font-weight: 600;">✅ Connection Successful</div>
-                        <div style="color: #22543d; font-size: 0.9rem;">Database is accessible and ready to use.</div>
-                    </div>
-                `;
-            } catch (error) {
-                showErrorMessage('❌ Koneksi gagal: ' + error.message);
-                document.getElementById('supabaseStatus').innerHTML = `
-                    <div style="background: #fed7d7; border: 1px solid #e53e3e; border-radius: 8px; padding: 15px;">
-                        <div style="color: #742a2a; font-weight: 600;">❌ Connection Failed</div>
-                        <div style="color: #742a2a; font-size: 0.9rem;">${error.message}</div>
-                    </div>
-                `;
-            }
-        }
-        
-        function saveSupabaseConfig() {
-            const url = document.getElementById('supabaseUrl').value;
-            const key = document.getElementById('supabaseKey').value;
-            
-            if (!url || !key) {
-                showErrorMessage('❌ Masukkan URL dan Key Supabase!');
-                return;
-            }
-            
-            const config = { url, key };
-            saveToStorage(STORAGE_KEYS.supabaseConfig, config);
-            
-            // Reinitialize Supabase
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', function() {
             initializeSupabase();
+            loadAllData();
             
-            showSuccessMessage('✅ Konfigurasi Supabase disimpan!');
-            updateSystemInfo();
-        }
+            // Show welcome message
+            setTimeout(() => {
+                showMessage('🎉 IJP Management System siap! Auto-sync aktif setiap 30 detik 🔄', 'success');
+            }, 1000);
+        });
         
-        function clearSupabaseConfig() {
-            localStorage.removeItem(STORAGE_KEYS.supabaseConfig);
-            document.getElementById('supabaseUrl').value = '';
-            document.getElementById('supabaseKey').value = '';
-            document.getElementById('supabaseStatus').innerHTML = '';
-            
-            supabase = null;
-            updateConnectionStatus(false);
-            
-            showSuccessMessage('✅ Konfigurasi Supabase dihapus!');
-            updateSystemInfo();
-        }
-        
-        function updateSystemInfo() {
-            const settings = getFromStorage(STORAGE_KEYS.settings) || {};
-            const lastSync = settings.lastSync ? new Date(settings.lastSync).toLocaleString('id-ID') : 'Never';
-            
-            if (document.getElementById('lastSyncInfo')) {
-                document.getElementById('lastSyncInfo').textContent = lastSync;
-            }
-            
-            // Check storage availability
+        function initializeSupabase() {
             try {
-                localStorage.setItem('test', 'test');
-                localStorage.removeItem('test');
-                if (document.getElementById('storageInfo')) {
-                    document.getElementById('storageInfo').textContent = 'Available';
-                }
-            } catch (e) {
-                if (document.getElementById('storageInfo')) {
-                    document.getElementById('storageInfo').textContent = 'Limited';
-                }
-            }
-        }
-        
-        // Data Sync Functions
-        async function syncToSupabase(tableName, data, operation = 'upsert') {
-            if (!supabase || offlineMode) return false;
-            
-            try {
-                let result;
-                if (operation === 'upsert') {
-                    result = await supabase.from(tableName).upsert(data);
-                } else if (operation === 'insert') {
-                    result = await supabase.from(tableName).insert(data);
-                } else if (operation === 'update') {
-                    result = await supabase.from(tableName).update(data.updates).eq('id', data.id);
-                } else if (operation === 'delete') {
-                    result = await supabase.from(tableName).delete().eq('id', data.id);
-                }
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                isOnline = true;
+                updateSyncStatus('online');
+                startAutoSync();
                 
-                if (result.error) throw result.error;
-                return true;
+                // Initial sync after 3 seconds
+                setTimeout(() => {
+                    syncAllData();
+                }, 3000);
+                
             } catch (error) {
-                console.error(`Sync error for ${tableName}:`, error);
-                showErrorMessage(`❌ Sync gagal: ${error.message}`);
-                return false;
+                console.error('Supabase initialization failed:', error);
+                updateSyncStatus('offline');
+                showMessage('📱 Mode offline aktif. Periksa koneksi internet.', 'info');
+            }
+        }
+        
+        function startAutoSync() {
+            if (!supabase) return;
+            
+            // Sync every 30 seconds
+            autoSyncInterval = setInterval(() => {
+                syncAllData();
+            }, 30000);
+        }
+        
+        function updateSyncStatus(status) {
+            const statusElement = document.getElementById('syncStatus');
+            
+            switch (status) {
+                case 'online':
+                    statusElement.textContent = '🔄 Auto-Sync Active';
+                    statusElement.style.background = 'linear-gradient(45deg, #48bb78, #38a169)';
+                    break;
+                case 'syncing':
+                    statusElement.textContent = '⚡ Syncing...';
+                    statusElement.style.background = 'linear-gradient(45deg, #d69e2e, #b7791f)';
+                    break;
+                case 'offline':
+                    statusElement.textContent = '📱 Offline Mode';
+                    statusElement.style.background = 'linear-gradient(45deg, #718096, #4a5568)';
+                    break;
+                case 'error':
+                    statusElement.textContent = '❌ Sync Error';
+                    statusElement.style.background = 'linear-gradient(45deg, #e53e3e, #c53030)';
+                    break;
             }
         }
         
         async function syncAllData() {
-            if (!supabase) {
-                showErrorMessage('❌ Supabase belum dikonfigurasi!');
-                return;
-            }
-            
-            showLoadingMessage('🔄 Syncing data to Supabase...');
+            if (!supabase) return;
             
             try {
+                updateSyncStatus('syncing');
+                
                 const ijpData = getFromStorage(STORAGE_KEYS.ijp);
                 const monitoringData = getFromStorage(STORAGE_KEYS.monitoring);
                 const repairData = getFromStorage(STORAGE_KEYS.repair);
                 const switchingData = getFromStorage(STORAGE_KEYS.switching);
                 
-                await syncToSupabase('ijp_records', ijpData);
-                await syncToSupabase('monitoring_records', monitoringData);
-                await syncToSupabase('repair_records', repairData);
-                await syncToSupabase('switching_records', switchingData);
+                // Sync to Supabase (upsert = insert or update)
+                if (ijpData.length > 0) {
+                    await supabase.from('ijp_records').upsert(ijpData);
+                }
+                if (monitoringData.length > 0) {
+                    await supabase.from('monitoring_records').upsert(monitoringData);
+                }
+                if (repairData.length > 0) {
+                    await supabase.from('repair_records').upsert(repairData);
+                }
+                if (switchingData.length > 0) {
+                    await supabase.from('switching_records').upsert(switchingData);
+                }
                 
-                // Update last sync time
-                const settings = getFromStorage(STORAGE_KEYS.settings) || {};
-                settings.lastSync = new Date().toISOString();
-                saveToStorage(STORAGE_KEYS.settings, settings);
+                // Download latest data from Supabase
+                const { data: latestIJP } = await supabase.from('ijp_records').select('*');
+                const { data: latestMonitoring } = await supabase.from('monitoring_records').select('*');
+                const { data: latestRepair } = await supabase.from('repair_records').select('*');
+                const { data: latestSwitching } = await supabase.from('switching_records').select('*');
                 
-                showSuccessMessage('✅ Semua data berhasil di-sync ke Supabase!');
-                updateSystemInfo();
+                // Update local storage with latest data
+                if (latestIJP) localStorage.setItem(STORAGE_KEYS.ijp, JSON.stringify(latestIJP));
+                if (latestMonitoring) localStorage.setItem(STORAGE_KEYS.monitoring, JSON.stringify(latestMonitoring));
+                if (latestRepair) localStorage.setItem(STORAGE_KEYS.repair, JSON.stringify(latestRepair));
+                if (latestSwitching) localStorage.setItem(STORAGE_KEYS.switching, JSON.stringify(latestSwitching));
+                
+                updateSyncStatus('online');
+                loadAllData(); // Refresh UI with latest data
+                
             } catch (error) {
-                showErrorMessage('❌ Sync gagal: ' + error.message);
+                console.error('Sync failed:', error);
+                updateSyncStatus('error');
             }
         }
         
-        async function downloadFromSupabase() {
-            if (!supabase) {
-                showErrorMessage('❌ Supabase belum dikonfigurasi!');
-                return;
-            }
-            
-            showLoadingMessage('📥 Downloading data from Supabase...');
-            
-            try {
-                const { data: ijpData, error: ijpError } = await supabase.from('ijp_records').select('*');
-                const { data: monitoringData, error: monitoringError } = await supabase.from('monitoring_records').select('*');
-                const { data: repairData, error: repairError } = await supabase.from('repair_records').select('*');
-                const { data: switchingData, error: switchingError } = await supabase.from('switching_records').select('*');
-                
-                if (ijpError) throw ijpError;
-                if (monitoringError) throw monitoringError;
-                if (repairError) throw repairError;
-                if (switchingError) throw switchingError;
-                
-                // Save to local storage
-                saveToStorage(STORAGE_KEYS.ijp, ijpData || []);
-                saveToStorage(STORAGE_KEYS.monitoring, monitoringData || []);
-                saveToStorage(STORAGE_KEYS.repair, repairData || []);
-                saveToStorage(STORAGE_KEYS.switching, switchingData || []);
-                
-                showSuccessMessage('✅ Data berhasil didownload dari Supabase!');
-                loadAllData();
-            } catch (error) {
-                showErrorMessage('❌ Download gagal: ' + error.message);
-            }
-        }
-        
-        // Local Storage Helper Functions
+        // Storage Functions
         function saveToStorage(key, data) {
             localStorage.setItem(key, JSON.stringify(data));
             
-            // Auto sync if enabled
-            if (autoSyncEnabled && !offlineMode && supabase) {
-                const tableName = key.replace('_v21', '');
-                syncToSupabase(tableName, data);
+            // Trigger immediate sync if online
+            if (supabase && isOnline) {
+                setTimeout(() => {
+                    syncAllData();
+                }, 2000);
             }
         }
         
@@ -1433,15 +706,11 @@
                 loadIJPOptions('replacementIJP');
             } else if (tabName === 'history') {
                 loadHistory();
-            } else if (tabName === 'backup') {
-                updateBackupCounts();
-            } else if (tabName === 'settings') {
-                updateSystemInfo();
             }
         }
         
-        // Form Management
-        document.getElementById('ijpForm').addEventListener('submit', async function(e) {
+        // Form Handlers
+        document.getElementById('ijpForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
             const formData = new FormData(e.target);
@@ -1462,17 +731,12 @@
             existingData.push(newIJP);
             saveToStorage(STORAGE_KEYS.ijp, existingData);
             
-            // Sync to Supabase if online
-            if (supabase && !offlineMode) {
-                await syncToSupabase('ijp_records', [newIJP], 'insert');
-            }
-            
-            showSuccessMessage('✅ IJP berhasil disimpan!');
+            showMessage('✅ IJP berhasil disimpan! Auto-sync aktif 🔄', 'success');
             resetForm();
             loadAllData();
         });
         
-        document.getElementById('monitoringForm').addEventListener('submit', async function(e) {
+        document.getElementById('monitoringForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
             const formData = new FormData(e.target);
@@ -1496,24 +760,14 @@
             if (ijpIndex !== -1) {
                 ijpData[ijpIndex].cumulative_time += additionalTime;
                 saveToStorage(STORAGE_KEYS.ijp, ijpData);
-                
-                // Sync updated IJP to Supabase
-                if (supabase && !offlineMode) {
-                    await syncToSupabase('ijp_records', [ijpData[ijpIndex]], 'upsert');
-                }
             }
             
-            // Sync monitoring to Supabase
-            if (supabase && !offlineMode) {
-                await syncToSupabase('monitoring_records', [newMonitoring], 'insert');
-            }
-            
-            showSuccessMessage('✅ Data monitoring berhasil disimpan!');
+            showMessage('✅ Data monitoring berhasil disimpan! Auto-sync aktif 🔄', 'success');
             resetMonitoringForm();
             loadAllData();
         });
         
-        document.getElementById('repairForm').addEventListener('submit', async function(e) {
+        document.getElementById('repairForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
             const formData = new FormData(e.target);
@@ -1538,27 +792,17 @@
                 if (ijpIndex !== -1) {
                     ijpData[ijpIndex].cumulative_time = 0;
                     saveToStorage(STORAGE_KEYS.ijp, ijpData);
-                    
-                    // Sync updated IJP to Supabase
-                    if (supabase && !offlineMode) {
-                        await syncToSupabase('ijp_records', [ijpData[ijpIndex]], 'upsert');
-                    }
                 }
-                showSuccessMessage('✅ Data repair berhasil disimpan! Cumulative Op. Time direset ke 0.');
+                showMessage('✅ Data repair berhasil disimpan! Cumulative Op. Time direset ke 0. Auto-sync aktif 🔄', 'success');
             } else {
-                showSuccessMessage('✅ Data repair berhasil disimpan!');
-            }
-            
-            // Sync repair to Supabase
-            if (supabase && !offlineMode) {
-                await syncToSupabase('repair_records', [newRepair], 'insert');
+                showMessage('✅ Data repair berhasil disimpan! Auto-sync aktif 🔄', 'success');
             }
             
             resetRepairForm();
             loadAllData();
         });
         
-        document.getElementById('switchingForm').addEventListener('submit', async function(e) {
+        document.getElementById('switchingForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
             const formData = new FormData(e.target);
@@ -1568,7 +812,6 @@
                 replacement_ijp_id: formData.get('replacementIJP'),
                 pic: formData.get('switchingPIC'),
                 reason: formData.get('switchingReason'),
-                reason_detail: formData.get('reasonDetail'),
                 created_at: new Date().toISOString()
             };
             
@@ -1583,26 +826,17 @@
                 if (ijpIndex !== -1) {
                     ijpData[ijpIndex].status = 'Rusak';
                     saveToStorage(STORAGE_KEYS.ijp, ijpData);
-                    
-                    // Sync updated IJP to Supabase
-                    if (supabase && !offlineMode) {
-                        await syncToSupabase('ijp_records', [ijpData[ijpIndex]], 'upsert');
-                    }
                 }
-                showSuccessMessage('✅ Data penukaran berhasil disimpan! Status IJP diubah menjadi RUSAK.');
+                showMessage('✅ Data penukaran berhasil disimpan! Status IJP diubah menjadi RUSAK. Auto-sync aktif 🔄', 'success');
             } else {
-                showSuccessMessage('✅ Data penukaran berhasil disimpan!');
-            }
-            
-            // Sync switching to Supabase
-            if (supabase && !offlineMode) {
-                await syncToSupabase('switching_records', [newSwitching], 'insert');
+                showMessage('✅ Data penukaran berhasil disimpan! Auto-sync aktif 🔄', 'success');
             }
             
             resetSwitchingForm();
             loadAllData();
         });
         
+        // Form Reset Functions
         function resetForm() {
             document.getElementById('ijpForm').reset();
         }
@@ -1627,7 +861,7 @@
             switchingData = getFromStorage(STORAGE_KEYS.switching);
             
             updateStats();
-            updateCharts();
+            updateChart();
             loadDashboardList();
         }
         
@@ -1642,19 +876,8 @@
                 filteredData = data.filter(ijp => ijp.id !== selectedIJPId);
             }
             
-            filteredData.sort((a, b) => a.main_machine.localeCompare(b.main_machine));
-            
             const select = document.getElementById(selectId);
-            
-            if (selectId === 'monitoringIJP') {
-                select.innerHTML = '<option value="">Pilih Serial Number IJP</option>';
-            } else if (selectId === 'repairIJP') {
-                select.innerHTML = '<option value="">Pilih Serial Number IJP</option>';
-            } else if (selectId === 'switchingIJP') {
-                select.innerHTML = '<option value="">Pilih Serial Number IJP Aktif</option>';
-            } else if (selectId === 'replacementIJP') {
-                select.innerHTML = '<option value="">Pilih Serial Number IJP Pengganti</option>';
-            }
+            select.innerHTML = '<option value="">Pilih Serial Number IJP</option>';
             
             filteredData.forEach(ijp => {
                 const option = document.createElement('option');
@@ -1681,64 +904,45 @@
             document.getElementById('maintenanceIJP').textContent = maintenance;
         }
         
-        function updateCharts() {
-            updateComprehensiveChart();
-            updateIJPTypeChart();
-        }
-        
-        function updateComprehensiveChart() {
+        function updateChart() {
             const deptData = {};
             
             ijpData.forEach(ijp => {
                 if (!deptData[ijp.department]) {
-                    deptData[ijp.department] = {
-                        total: 0,
-                        aktif: 0,
-                        rusak: 0,
-                        needFilterChange: 0
-                    };
+                    deptData[ijp.department] = { aktif: 0, rusak: 0, maintenance: 0 };
                 }
-                
-                deptData[ijp.department].total++;
                 
                 if (ijp.status === 'Aktif') deptData[ijp.department].aktif++;
                 if (ijp.status === 'Rusak') deptData[ijp.department].rusak++;
-                if (ijp.cumulative_time > 9500) deptData[ijp.department].needFilterChange++;
+                if (ijp.status === 'Maintenance') deptData[ijp.department].maintenance++;
             });
             
             const departments = Object.keys(deptData);
+            const ctx = document.getElementById('statusChart').getContext('2d');
             
-            const ctx = document.getElementById('comprehensiveChart').getContext('2d');
+            if (statusChart) statusChart.destroy();
             
-            if (charts.comprehensive) charts.comprehensive.destroy();
-            
-            charts.comprehensive = new Chart(ctx, {
+            statusChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: departments,
                     datasets: [
                         {
-                            label: '📊 Total IJP',
-                            data: departments.map(dept => deptData[dept].total),
-                            backgroundColor: '#667eea',
-                            borderRadius: 4
-                        },
-                        {
-                            label: '✅ IJP Aktif',
+                            label: '✅ Aktif',
                             data: departments.map(dept => deptData[dept].aktif),
                             backgroundColor: '#48bb78',
                             borderRadius: 4
                         },
                         {
-                            label: '🔄 Perlu Ganti Filter (>9500h)',
-                            data: departments.map(dept => deptData[dept].needFilterChange),
-                            backgroundColor: '#f6ad55',
+                            label: '❌ Rusak',
+                            data: departments.map(dept => deptData[dept].rusak),
+                            backgroundColor: '#e53e3e',
                             borderRadius: 4
                         },
                         {
-                            label: '❌ IJP Rusak',
-                            data: departments.map(dept => deptData[dept].rusak),
-                            backgroundColor: '#e53e3e',
+                            label: '🔧 Maintenance',
+                            data: departments.map(dept => deptData[dept].maintenance),
+                            backgroundColor: '#d69e2e',
                             borderRadius: 4
                         }
                     ]
@@ -1752,236 +956,110 @@
                                 usePointStyle: true,
                                 padding: 20
                             }
-                        },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false
                         }
                     },
                     scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Departemen'
-                            }
-                        },
-                        y: {
+                        y: { 
                             beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Jumlah IJP'
-                            }
-                        }
-                    },
-                    interaction: {
-                        mode: 'nearest',
-                        axis: 'x',
-                        intersect: false
-                    }
-                }
-            });
-        }
-        
-        function updateIJPTypeChart() {
-            const deptTypeData = {};
-            const ijpTypes = ['PX', 'PXR', 'RX1', 'RX2', 'UX Single', 'UX Twin'];
-            
-            ijpData.forEach(ijp => {
-                if (!deptTypeData[ijp.department]) {
-                    deptTypeData[ijp.department] = {};
-                    ijpTypes.forEach(type => {
-                        deptTypeData[ijp.department][type] = 0;
-                    });
-                }
-                
-                if (ijpTypes.includes(ijp.ijp_type)) {
-                    deptTypeData[ijp.department][ijp.ijp_type]++;
-                }
-            });
-            
-            const departments = Object.keys(deptTypeData);
-            const colors = ['#667eea', '#48bb78', '#f6ad55', '#e53e3e', '#9f7aea', '#38b2ac'];
-            
-            const ctx = document.getElementById('ijpTypeChart').getContext('2d');
-            
-            if (charts.ijpType) charts.ijpType.destroy();
-            
-            const datasets = ijpTypes.map((type, index) => ({
-                label: `🔧 ${type}`,
-                data: departments.map(dept => deptTypeData[dept][type]),
-                backgroundColor: colors[index % colors.length],
-                borderRadius: 4
-            }));
-            
-            charts.ijpType = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: departments,
-                    datasets: datasets
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { 
-                            position: 'top',
-                            labels: {
-                                usePointStyle: true,
-                                padding: 20
-                            }
-                        },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false,
-                            callbacks: {
-                                title: function(context) {
-                                    return `Departemen: ${context[0].label}`;
-                                },
-                                label: function(context) {
-                                    return `${context.dataset.label}: ${context.parsed.y} unit`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Departemen'
-                            }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Jumlah IJP'
-                            },
                             ticks: {
                                 stepSize: 1
                             }
                         }
-                    },
-                    interaction: {
-                        mode: 'nearest',
-                        axis: 'x',
-                        intersect: false
                     }
                 }
             });
         }
         
         function loadDashboardList() {
-            const groupedData = {};
-            
-            ijpData.forEach(ijp => {
-                if (!groupedData[ijp.department]) {
-                    groupedData[ijp.department] = [];
-                }
-                groupedData[ijp.department].push(ijp);
-            });
-            
-            Object.keys(groupedData).forEach(dept => {
-                groupedData[dept].sort((a, b) => b.cumulative_time - a.cumulative_time);
-            });
+            const sortedData = [...ijpData].sort((a, b) => b.cumulative_time - a.cumulative_time);
             
             let html = '';
-            Object.keys(groupedData).forEach(department => {
-                html += `
-                    <div class="department-section">
-                        <div class="department-header" onclick="toggleDepartment('${department}')">
-                            🏭 ${department} (${groupedData[department].length} IJP)
-                        </div>
-                        <div class="department-content" id="dept-${department}">
-                `;
-                
-                groupedData[department].forEach(ijp => {
-                    html += createIJPCard(ijp, true);
-                });
-                
-                html += `
-                        </div>
-                    </div>
-                `;
+            sortedData.forEach(ijp => {
+                html += createIJPCard(ijp);
             });
             
-            document.getElementById('dashboardList').innerHTML = html;
+            document.getElementById('dashboardList').innerHTML = html || '<div style="text-align: center; padding: 40px; color: #64748b;">📭 Belum ada data IJP</div>';
         }
         
-        function toggleDepartment(department) {
-            const content = document.getElementById(`dept-${department}`);
-            content.style.display = content.style.display === 'none' ? 'block' : 'none';
+        function createIJPCard(ijp) {
+            const statusClass = `status-${ijp.status.toLowerCase()}`;
+            const createdDate = new Date(ijp.created_at).toLocaleDateString('id-ID');
+            const isHighHours = ijp.cumulative_time > 9500;
+            
+            return `
+                <div class="ijp-card">
+                    <div class="ijp-header">
+                        <div class="ijp-number">📋 ${ijp.serial_number}</div>
+                        <div class="status-badge ${statusClass}">${ijp.status}</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                        <div><strong>🔧 Tipe IJP:</strong> ${ijp.ijp_type}</div>
+                        <div><strong>📍 Lokasi:</strong> ${ijp.location}</div>
+                        <div><strong>⚙️ Mesin Utama:</strong> ${ijp.main_machine}</div>
+                        <div><strong>🏭 Departemen:</strong> ${ijp.department}</div>
+                        <div><strong>👤 PIC:</strong> ${ijp.pic}</div>
+                        <div><strong>📅 Dibuat:</strong> ${createdDate}</div>
+                        <div class="cumulative-time ${isHighHours ? 'high-hours' : ''}">
+                            <strong>⏱️ Op. Time:</strong> ${ijp.cumulative_time} jam
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <button class="btn btn-secondary" onclick="editIJP('${ijp.id}')">✏️ Edit</button>
+                        <button class="btn btn-danger" onclick="deleteIJP('${ijp.id}')">🗑️ Hapus</button>
+                    </div>
+                </div>
+            `;
         }
         
         // History Functions
         function loadHistory() {
-            const historyType = document.getElementById('historyType').value;
-            const dateFrom = document.getElementById('historyDateFrom').value;
-            const dateTo = document.getElementById('historyDateTo').value;
-            
             let allHistory = [];
             
-            if (!historyType || historyType === 'ijp_records') {
-                const ijpRecords = getFromStorage(STORAGE_KEYS.ijp);
-                allHistory = allHistory.concat(ijpRecords.map(item => ({
+            // Add IJP records
+            const ijpRecords = getFromStorage(STORAGE_KEYS.ijp);
+            allHistory = allHistory.concat(ijpRecords.map(item => ({
+                ...item,
+                type: 'IJP Record',
+                icon: '📋'
+            })));
+            
+            // Add monitoring records
+            const monitoringRecords = getFromStorage(STORAGE_KEYS.monitoring);
+            allHistory = allHistory.concat(monitoringRecords.map(item => {
+                const ijp = ijpRecords.find(ijp => ijp.id === item.ijp_id);
+                return {
                     ...item,
-                    type: 'IJP Record',
-                    icon: '📋'
-                })));
-            }
+                    type: 'Monitoring',
+                    icon: '📈',
+                    ijp_info: ijp ? `${ijp.serial_number} - ${ijp.main_machine}` : 'N/A'
+                };
+            }));
             
-            if (!historyType || historyType === 'monitoring_records') {
-                const monitoringRecords = getFromStorage(STORAGE_KEYS.monitoring);
-                const ijpRecords = getFromStorage(STORAGE_KEYS.ijp);
-                
-                allHistory = allHistory.concat(monitoringRecords.map(item => {
-                    const ijp = ijpRecords.find(ijp => ijp.id === item.ijp_id);
-                    return {
-                        ...item,
-                        type: 'Monitoring',
-                        icon: '📈',
-                        ijp_records: ijp ? { serial_number: ijp.serial_number, main_machine: ijp.main_machine } : null
-                    };
-                }));
-            }
+            // Add repair records
+            const repairRecords = getFromStorage(STORAGE_KEYS.repair);
+            allHistory = allHistory.concat(repairRecords.map(item => {
+                const ijp = ijpRecords.find(ijp => ijp.id === item.ijp_id);
+                return {
+                    ...item,
+                    type: 'Repair',
+                    icon: '🔧',
+                    ijp_info: ijp ? `${ijp.serial_number} - ${ijp.main_machine}` : 'N/A'
+                };
+            }));
             
-            if (!historyType || historyType === 'repair_records') {
-                const repairRecords = getFromStorage(STORAGE_KEYS.repair);
-                const ijpRecords = getFromStorage(STORAGE_KEYS.ijp);
-                
-                allHistory = allHistory.concat(repairRecords.map(item => {
-                    const ijp = ijpRecords.find(ijp => ijp.id === item.ijp_id);
-                    return {
-                        ...item,
-                        type: 'Repair',
-                        icon: '🔧',
-                        ijp_records: ijp ? { serial_number: ijp.serial_number, main_machine: ijp.main_machine } : null
-                    };
-                }));
-            }
+            // Add switching records
+            const switchingRecords = getFromStorage(STORAGE_KEYS.switching);
+            allHistory = allHistory.concat(switchingRecords.map(item => {
+                const ijp = ijpRecords.find(ijp => ijp.id === item.ijp_id);
+                return {
+                    ...item,
+                    type: 'Switching',
+                    icon: '🔄',
+                    ijp_info: ijp ? `${ijp.serial_number} - ${ijp.main_machine}` : 'N/A'
+                };
+            }));
             
-            if (!historyType || historyType === 'switching_records') {
-                const switchingRecords = getFromStorage(STORAGE_KEYS.switching);
-                const ijpRecords = getFromStorage(STORAGE_KEYS.ijp);
-                
-                allHistory = allHistory.concat(switchingRecords.map(item => {
-                    const ijp = ijpRecords.find(ijp => ijp.id === item.ijp_id);
-                    return {
-                        ...item,
-                        type: 'Switching',
-                        icon: '🔄',
-                        ijp_records: ijp ? { serial_number: ijp.serial_number, main_machine: ijp.main_machine } : null
-                    };
-                }));
-            }
-            
-            if (dateFrom || dateTo) {
-                allHistory = allHistory.filter(item => {
-                    const itemDate = new Date(item.created_at).toISOString().split('T')[0];
-                    if (dateFrom && itemDate < dateFrom) return false;
-                    if (dateTo && itemDate > dateTo) return false;
-                    return true;
-                });
-            }
-            
+            // Sort by date
             allHistory.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
             
             displayHistory(allHistory);
@@ -2016,30 +1094,27 @@
                 content = `
                     <div><strong>Serial Number:</strong> ${item.serial_number}</div>
                     <div><strong>Tipe IJP:</strong> ${item.ijp_type}</div>
-                    <div><strong>Mesin Utama:</strong> ${item.main_machine}</div>
-                    <div><strong>Department:</strong> ${item.department}</div>
+                    <div><strong>Departemen:</strong> ${item.department}</div>
                     <div><strong>Status:</strong> ${item.status}</div>
                 `;
             } else if (item.type === 'Monitoring') {
                 content = `
-                    <div><strong>IJP:</strong> ${item.ijp_records?.serial_number} - ${item.ijp_records?.main_machine}</div>
+                    <div><strong>IJP:</strong> ${item.ijp_info}</div>
                     <div><strong>PIC:</strong> ${item.pic}</div>
-                    <div><strong>Additional Op. Time:</strong> ${item.additional_time} jam</div>
+                    <div><strong>Additional Time:</strong> ${item.additional_time} jam</div>
                 `;
             } else if (item.type === 'Repair') {
                 content = `
-                    <div><strong>IJP:</strong> ${item.ijp_records?.serial_number} - ${item.ijp_records?.main_machine}</div>
+                    <div><strong>IJP:</strong> ${item.ijp_info}</div>
                     <div><strong>PIC:</strong> ${item.pic}</div>
                     <div><strong>Kerusakan:</strong> ${item.kerusakan}</div>
-                    <div><strong>Action:</strong> ${item.action}</div>
-                    <div><strong>Ganti Filter Set:</strong> ${item.ganti_filter_set ? 'Ya' : 'Tidak'}</div>
+                    <div><strong>Ganti Filter:</strong> ${item.ganti_filter_set ? 'Ya' : 'Tidak'}</div>
                 `;
             } else if (item.type === 'Switching') {
                 content = `
-                    <div><strong>IJP:</strong> ${item.ijp_records?.serial_number} - ${item.ijp_records?.main_machine}</div>
+                    <div><strong>IJP:</strong> ${item.ijp_info}</div>
                     <div><strong>PIC:</strong> ${item.pic}</div>
                     <div><strong>Alasan:</strong> ${item.reason}</div>
-                    <div><strong>Detail:</strong> ${item.reason_detail || 'N/A'}</div>
                 `;
             }
             
@@ -2051,70 +1126,6 @@
                     </div>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
                         ${content}
-                    </div>
-                </div>
-            `;
-        }
-        
-        function clearHistoryFilters() {
-            document.getElementById('historyType').value = '';
-            document.getElementById('historyDateFrom').value = '';
-            document.getElementById('historyDateTo').value = '';
-            loadHistory();
-        }
-        
-        function handleReasonChange() {
-            const reason = document.getElementById('switchingReason').value;
-            const detailGroup = document.getElementById('reasonDetailGroup');
-            
-            if (reason === 'Lainnya') {
-                detailGroup.style.display = 'block';
-                document.getElementById('reasonDetail').required = true;
-            } else {
-                detailGroup.style.display = 'none';
-                document.getElementById('reasonDetail').required = false;
-            }
-        }
-        
-        function displayResults(data, containerId) {
-            let html = '';
-            
-            if (data.length === 0) {
-                html = '<div style="text-align: center; padding: 40px; color: #64748b;">📭 Tidak ada data IJP ditemukan</div>';
-            } else {
-                data.forEach(ijp => {
-                    html += createIJPCard(ijp);
-                });
-            }
-            
-            document.getElementById(containerId).innerHTML = html;
-        }
-        
-        function createIJPCard(ijp, showCumulativeTime = false) {
-            const statusClass = `status-${ijp.status.toLowerCase().replace(/\s+/g, '-')}`;
-            const createdDate = new Date(ijp.created_at).toLocaleDateString('id-ID');
-            
-            return `
-                <div class="ijp-card">
-                    <div class="ijp-header">
-                        <div class="ijp-number">📋 ${ijp.serial_number}</div>
-                        <div class="status-badge ${statusClass}">${ijp.status}</div>
-                    </div>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
-                        <div><strong>🔧 Tipe IJP:</strong> ${ijp.ijp_type}</div>
-                        <div><strong>📍 Lokasi:</strong> ${ijp.location}</div>
-                        <div><strong>⚙️ Mesin Utama:</strong> ${ijp.main_machine}</div>
-                        <div><strong>🏭 Departemen:</strong> ${ijp.department}</div>
-                        <div><strong>👤 PIC:</strong> ${ijp.pic}</div>
-                        <div><strong>📅 Dibuat:</strong> ${createdDate}</div>
-                        ${showCumulativeTime && ijp.cumulative_time > 9500 ? 
-                            `<div class="cumulative-time high-hours"><strong>⏱️ Op. Time:</strong> ${ijp.cumulative_time} jam</div>` : 
-                            `<div class="cumulative-time"><strong>⏱️ Op. Time:</strong> ${ijp.cumulative_time} jam</div>`
-                        }
-                    </div>
-                    <div style="margin-top: 15px;">
-                        <button class="btn btn-secondary" onclick="editIJP('${ijp.id}')">✏️ Edit</button>
-                        <button class="btn btn-danger" onclick="deleteIJP('${ijp.id}')">🗑️ Hapus</button>
                     </div>
                 </div>
             `;
@@ -2138,7 +1149,7 @@
             const form = document.getElementById('ijpForm');
             const originalSubmit = form.onsubmit;
             
-            form.onsubmit = async function(e) {
+            form.onsubmit = function(e) {
                 e.preventDefault();
                 
                 const formData = new FormData(e.target);
@@ -2158,12 +1169,7 @@
                     data[index] = { ...data[index], ...updatedData };
                     saveToStorage(STORAGE_KEYS.ijp, data);
                     
-                    // Sync to Supabase
-                    if (supabase && !offlineMode) {
-                        await syncToSupabase('ijp_records', [data[index]], 'upsert');
-                    }
-                    
-                    showSuccessMessage('✅ IJP berhasil diupdate!');
+                    showMessage('✅ IJP berhasil diupdate! Auto-sync aktif 🔄', 'success');
                     resetForm();
                     loadAllData();
                     
@@ -2172,109 +1178,37 @@
             };
         }
         
-        async function deleteIJP(id) {
-            if (!await showConfirmDialog('⚠️ Apakah Anda yakin ingin menghapus IJP ini?')) return;
+        function deleteIJP(id) {
+            if (!confirm('⚠️ Apakah Anda yakin ingin menghapus IJP ini?')) return;
             
             const data = getFromStorage(STORAGE_KEYS.ijp);
             const filteredData = data.filter(item => item.id !== id);
             saveToStorage(STORAGE_KEYS.ijp, filteredData);
             
-            // Sync deletion to Supabase
-            if (supabase && !offlineMode) {
-                await syncToSupabase('ijp_records', { id }, 'delete');
-            }
-            
-            showSuccessMessage('✅ IJP berhasil dihapus!');
+            showMessage('✅ IJP berhasil dihapus! Auto-sync aktif 🔄', 'success');
             loadAllData();
-        }
-        
-        // Supabase Management Functions
-        async function checkSupabaseData() {
-            if (!supabase) {
-                showErrorMessage('❌ Supabase belum dikonfigurasi!');
-                return;
-            }
-            
-            try {
-                const { count: ijpCount } = await supabase.from('ijp_records').select('*', { count: 'exact', head: true });
-                const { count: monitoringCount } = await supabase.from('monitoring_records').select('*', { count: 'exact', head: true });
-                const { count: repairCount } = await supabase.from('repair_records').select('*', { count: 'exact', head: true });
-                const { count: switchingCount } = await supabase.from('switching_records').select('*', { count: 'exact', head: true });
-                
-                const totalData = (ijpCount || 0) + (monitoringCount || 0) + (repairCount || 0) + (switchingCount || 0);
-                
-                document.getElementById('supabaseDataInfo').innerHTML = `
-                    <div style="background: #e6fffa; border: 1px solid #38b2ac; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
-                        <div style="color: #234e52; font-weight: 600;">📊 Data di Supabase:</div>
-                        <div style="color: #234e52; font-size: 0.9rem;">
-                            • IJP Records: ${ijpCount || 0} data<br>
-                            • Monitoring Records: ${monitoringCount || 0} data<br>
-                            • Repair Records: ${repairCount || 0} data<br>
-                            • Switching Records: ${switchingCount || 0} data<br>
-                            <strong>Total: ${totalData} data</strong>
-                        </div>
-                    </div>
-                `;
-                
-                // Enable delete button if there's data
-                document.getElementById('deleteSupabaseBtn').disabled = totalData === 0;
-                
-                if (totalData === 0) {
-                    showSuccessMessage('✅ Supabase database kosong');
-                } else {
-                    showSuccessMessage(`✅ Ditemukan ${totalData} data di Supabase`);
-                }
-            } catch (error) {
-                showErrorMessage('❌ Error checking Supabase: ' + error.message);
-            }
-        }
-        
-        async function deleteAllSupabaseData() {
-            if (!supabase) {
-                showErrorMessage('❌ Supabase belum dikonfigurasi!');
-                return;
-            }
-            
-            // Triple confirmation
-            if (!await showConfirmDialog('⚠️ PERINGATAN: Ini akan menghapus SEMUA data di Supabase! Apakah Anda yakin?')) return;
-            if (!await showConfirmDialog('⚠️ KONFIRMASI KEDUA: Data yang dihapus TIDAK BISA dikembalikan! Lanjutkan?')) return;
-            
-            // Final confirmation with manual typing
-            const confirmation = await showTextConfirmDialog('Ketik "DELETE" untuk konfirmasi penghapusan:', 'DELETE');
-            if (!confirmation) return;
-            
-            try {
-                showLoadingMessage('🗑️ Menghapus semua data dari Supabase...');
-                
-                // Delete all data from each table
-                await supabase.from('ijp_records').delete().neq('id', '');
-                await supabase.from('monitoring_records').delete().neq('id', '');
-                await supabase.from('repair_records').delete().neq('id', '');
-                await supabase.from('switching_records').delete().neq('id', '');
-                
-                showSuccessMessage('✅ Semua data Supabase berhasil dihapus!');
-                
-                // Refresh data info
-                checkSupabaseData();
-            } catch (error) {
-                showErrorMessage('❌ Error menghapus data: ' + error.message);
-            }
         }
         
         // Utility Functions
-        function showSuccessMessage(message) {
+        function showMessage(message, type) {
             const messageDiv = document.createElement('div');
+            let bgColor = '#48bb78';
+            
+            if (type === 'error') bgColor = '#e53e3e';
+            if (type === 'info') bgColor = '#3182ce';
+            
             messageDiv.style.cssText = `
                 position: fixed;
                 top: 20px;
                 right: 20px;
-                background: #48bb78;
+                background: ${bgColor};
                 color: white;
                 padding: 15px 25px;
                 border-radius: 10px;
                 box-shadow: 0 10px 30px rgba(0,0,0,0.2);
                 z-index: 1000;
                 font-weight: 600;
+                max-width: 400px;
             `;
             messageDiv.textContent = message;
             document.body.appendChild(messageDiv);
@@ -2283,554 +1217,8 @@
                 if (document.body.contains(messageDiv)) {
                     document.body.removeChild(messageDiv);
                 }
-            }, 3000);
+            }, 4000);
         }
-        
-        function showErrorMessage(message) {
-            const messageDiv = document.createElement('div');
-            messageDiv.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: #e53e3e;
-                color: white;
-                padding: 15px 25px;
-                border-radius: 10px;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-                z-index: 1000;
-                font-weight: 600;
-            `;
-            messageDiv.textContent = message;
-            document.body.appendChild(messageDiv);
-            
-            setTimeout(() => {
-                if (document.body.contains(messageDiv)) {
-                    document.body.removeChild(messageDiv);
-                }
-            }, 5000);
-        }
-        
-        function showLoadingMessage(message) {
-            const messageDiv = document.createElement('div');
-            messageDiv.id = 'loadingMessage';
-            messageDiv.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: #d69e2e;
-                color: white;
-                padding: 15px 25px;
-                border-radius: 10px;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-                z-index: 1000;
-                font-weight: 600;
-            `;
-            messageDiv.textContent = message;
-            document.body.appendChild(messageDiv);
-            
-            // Auto remove after 10 seconds
-            setTimeout(() => {
-                const loadingMsg = document.getElementById('loadingMessage');
-                if (loadingMsg && document.body.contains(loadingMsg)) {
-                    document.body.removeChild(loadingMsg);
-                }
-            }, 10000);
-        }
-        
-        function showConfirmDialog(message) {
-            const modal = document.createElement('div');
-            modal.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0,0,0,0.5);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 1000;
-            `;
-            
-            const dialog = document.createElement('div');
-            dialog.style.cssText = `
-                background: white;
-                padding: 30px;
-                border-radius: 15px;
-                box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-                text-align: center;
-                max-width: 400px;
-                margin: 20px;
-            `;
-            
-            dialog.innerHTML = `
-                <div style="font-size: 1.2rem; margin-bottom: 20px; color: #2d3748;">${message}</div>
-                <button id="confirmYes" class="btn" style="margin-right: 10px;">Ya</button>
-                <button id="confirmNo" class="btn btn-secondary">Batal</button>
-            `;
-            
-            modal.appendChild(dialog);
-            document.body.appendChild(modal);
-            
-            return new Promise((resolve) => {
-                document.getElementById('confirmYes').onclick = () => {
-                    document.body.removeChild(modal);
-                    resolve(true);
-                };
-                
-                document.getElementById('confirmNo').onclick = () => {
-                    document.body.removeChild(modal);
-                    resolve(false);
-                };
-                
-                modal.onclick = (e) => {
-                    if (e.target === modal) {
-                        document.body.removeChild(modal);
-                        resolve(false);
-                    }
-                };
-            });
-        }
-        
-        function showTextConfirmDialog(message, expectedText) {
-            const modal = document.createElement('div');
-            modal.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0,0,0,0.5);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 1000;
-            `;
-            
-            const dialog = document.createElement('div');
-            dialog.style.cssText = `
-                background: white;
-                padding: 30px;
-                border-radius: 15px;
-                box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-                text-align: center;
-                max-width: 400px;
-                margin: 20px;
-            `;
-            
-            dialog.innerHTML = `
-                <div style="font-size: 1.2rem; margin-bottom: 20px; color: #2d3748;">${message}</div>
-                <input type="text" id="confirmText" style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; margin-bottom: 20px; text-align: center; font-weight: bold;">
-                <div>
-                    <button id="confirmTextYes" class="btn" style="margin-right: 10px;" disabled>Konfirmasi</button>
-                    <button id="confirmTextNo" class="btn btn-secondary">Batal</button>
-                </div>
-            `;
-            
-            modal.appendChild(dialog);
-            document.body.appendChild(modal);
-            
-            const textInput = document.getElementById('confirmText');
-            const confirmBtn = document.getElementById('confirmTextYes');
-            
-            textInput.addEventListener('input', function() {
-                confirmBtn.disabled = this.value !== expectedText;
-            });
-            
-            return new Promise((resolve) => {
-                confirmBtn.onclick = () => {
-                    document.body.removeChild(modal);
-                    resolve(true);
-                };
-                
-                document.getElementById('confirmTextNo').onclick = () => {
-                    document.body.removeChild(modal);
-                    resolve(false);
-                };
-                
-                modal.onclick = (e) => {
-                    if (e.target === modal) {
-                        document.body.removeChild(modal);
-                        resolve(false);
-                    }
-                };
-            });
-        }
-        
-        // Backup & Recovery Functions
-        function updateBackupCounts() {
-            document.getElementById('backupIJPCount').textContent = getFromStorage(STORAGE_KEYS.ijp).length;
-            document.getElementById('backupMonitoringCount').textContent = getFromStorage(STORAGE_KEYS.monitoring).length;
-            document.getElementById('backupRepairCount').textContent = getFromStorage(STORAGE_KEYS.repair).length;
-            document.getElementById('backupSwitchingCount').textContent = getFromStorage(STORAGE_KEYS.switching).length;
-        }
-        
-        function downloadBackup() {
-            const backupData = {
-                timestamp: new Date().toISOString(),
-                version: '21',
-                data: {
-                    ijp_records: getFromStorage(STORAGE_KEYS.ijp),
-                    monitoring_records: getFromStorage(STORAGE_KEYS.monitoring),
-                    repair_records: getFromStorage(STORAGE_KEYS.repair),
-                    switching_records: getFromStorage(STORAGE_KEYS.switching)
-                }
-            };
-            
-            const dataStr = JSON.stringify(backupData, null, 2);
-            const dataBlob = new Blob([dataStr], {type: 'application/json'});
-            
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(dataBlob);
-            link.download = `IJP_Backup_v21_${new Date().toISOString().split('T')[0]}.json`;
-            link.click();
-            
-            showSuccessMessage('✅ Backup berhasil didownload!');
-        }
-        
-        function restoreBackup() {
-            const fileInput = document.getElementById('restoreFile');
-            const mergeData = document.getElementById('mergeData').checked;
-            
-            if (!fileInput.files[0]) {
-                showErrorMessage('❌ Pilih file backup terlebih dahulu!');
-                return;
-            }
-            
-            const file = fileInput.files[0];
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                try {
-                    const backupData = JSON.parse(e.target.result);
-                    
-                    if (!backupData.data) {
-                        showErrorMessage('❌ Format file backup tidak valid!');
-                        return;
-                    }
-                    
-                    if (mergeData) {
-                        const existingIJP = getFromStorage(STORAGE_KEYS.ijp);
-                        const existingMonitoring = getFromStorage(STORAGE_KEYS.monitoring);
-                        const existingRepair = getFromStorage(STORAGE_KEYS.repair);
-                        const existingSwitching = getFromStorage(STORAGE_KEYS.switching);
-                        
-                        const mergedIJP = [...existingIJP, ...(backupData.data.ijp_records || [])];
-                        const mergedMonitoring = [...existingMonitoring, ...(backupData.data.monitoring_records || [])];
-                        const mergedRepair = [...existingRepair, ...(backupData.data.repair_records || [])];
-                        const mergedSwitching = [...existingSwitching, ...(backupData.data.switching_records || [])];
-                        
-                        saveToStorage(STORAGE_KEYS.ijp, mergedIJP);
-                        saveToStorage(STORAGE_KEYS.monitoring, mergedMonitoring);
-                        saveToStorage(STORAGE_KEYS.repair, mergedRepair);
-                        saveToStorage(STORAGE_KEYS.switching, mergedSwitching);
-                        
-                        showSuccessMessage('✅ Data berhasil di-restore dan digabung dengan data existing!');
-                    } else {
-                        saveToStorage(STORAGE_KEYS.ijp, backupData.data.ijp_records || []);
-                        saveToStorage(STORAGE_KEYS.monitoring, backupData.data.monitoring_records || []);
-                        saveToStorage(STORAGE_KEYS.repair, backupData.data.repair_records || []);
-                        saveToStorage(STORAGE_KEYS.switching, backupData.data.switching_records || []);
-                        
-                        showSuccessMessage('✅ Data berhasil di-restore! Data lama telah diganti.');
-                    }
-                    
-                    loadAllData();
-                    updateBackupCounts();
-                    
-                    fileInput.value = '';
-                    document.getElementById('mergeData').checked = false;
-                    
-                } catch (error) {
-                    showErrorMessage('❌ Error membaca file backup: ' + error.message);
-                }
-            };
-            
-            reader.readAsText(file);
-        }
-        
-        function loadSampleData() {
-            const sampleIJPData = [
-                {
-                    id: generateId(),
-                    serial_number: 'IJP001',
-                    ijp_type: 'PX',
-                    location: 'N 2510',
-                    main_machine: 'Kunglong 5',
-                    department: 'Line 01A',
-                    pic: 'JDO',
-                    status: 'Aktif',
-                    cumulative_time: 8500,
-                    created_at: new Date().toISOString()
-                },
-                {
-                    id: generateId(),
-                    serial_number: 'IJP002',
-                    ijp_type: 'RX1',
-                    location: 'S 1205',
-                    main_machine: 'Domino A320i',
-                    department: 'Line 01B',
-                    pic: 'ARI',
-                    status: 'Aktif',
-                    cumulative_time: 9800,
-                    created_at: new Date().toISOString()
-                },
-                {
-                    id: generateId(),
-                    serial_number: 'IJP003',
-                    ijp_type: 'UX Single',
-                    location: 'E 3401',
-                    main_machine: 'Videojet 1580',
-                    department: 'Line 02',
-                    pic: 'BUD',
-                    status: 'Perlu Penggantian Filter Set',
-                    cumulative_time: 9650,
-                    created_at: new Date().toISOString()
-                },
-                {
-                    id: generateId(),
-                    serial_number: 'IJP004',
-                    ijp_type: 'PXR',
-                    location: 'W 4102',
-                    main_machine: 'Linx 8900',
-                    department: 'Line 03',
-                    pic: 'SRI',
-                    status: 'Rusak',
-                    cumulative_time: 7200,
-                    created_at: new Date().toISOString()
-                },
-                {
-                    id: generateId(),
-                    serial_number: 'IJP005',
-                    ijp_type: 'UX Twin',
-                    location: 'C 5678',
-                    main_machine: 'Markem X40',
-                    department: 'Line 04',
-                    pic: 'TOM',
-                    status: 'Aktif',
-                    cumulative_time: 6800,
-                    created_at: new Date().toISOString()
-                },
-                {
-                    id: generateId(),
-                    serial_number: 'IJP006',
-                    ijp_type: 'RX2',
-                    location: 'B 7890',
-                    main_machine: 'Hitachi UX-D160W',
-                    department: 'Line 05',
-                    pic: 'DWI',
-                    status: 'Maintenance',
-                    cumulative_time: 5400,
-                    created_at: new Date().toISOString()
-                }
-            ];
-            
-            const existingIJP = getFromStorage(STORAGE_KEYS.ijp);
-            const mergedData = [...existingIJP, ...sampleIJPData];
-            saveToStorage(STORAGE_KEYS.ijp, mergedData);
-            
-            showSuccessMessage('✅ Sample data berhasil ditambahkan! Total: ' + sampleIJPData.length + ' IJP');
-            loadAllData();
-            updateBackupCounts();
-        }
-        
-        // Auto Recovery Functions
-        function attemptDataRecovery() {
-            const recoveredData = {
-                ijp: [],
-                monitoring: [],
-                repair: [],
-                switching: []
-            };
-            
-            console.log('🔍 Mencari data lama di localStorage...');
-            
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                console.log(`Checking key: ${key}`);
-                
-                try {
-                    const data = JSON.parse(localStorage.getItem(key));
-                    if (Array.isArray(data) && data.length > 0) {
-                        console.log(`Found array data in ${key}:`, data.length, 'items');
-                        console.log('Sample item:', data[0]);
-                        
-                        if (data[0].serial_number || data[0].ijp_type || data[0].main_machine || data[0].department) {
-                            console.log(`✅ Detected IJP data in ${key}`);
-                            recoveredData.ijp = [...recoveredData.ijp, ...data];
-                        }
-                        else if (data[0].additional_time || (data[0].ijp_id && data[0].pic)) {
-                            console.log(`✅ Detected monitoring data in ${key}`);
-                            recoveredData.monitoring = [...recoveredData.monitoring, ...data];
-                        }
-                        else if (data[0].kerusakan || data[0].action) {
-                            console.log(`✅ Detected repair data in ${key}`);
-                            recoveredData.repair = [...recoveredData.repair, ...data];
-                        }
-                        else if (data[0].replacement_ijp_id || data[0].reason) {
-                            console.log(`✅ Detected switching data in ${key}`);
-                            recoveredData.switching = [...recoveredData.switching, ...data];
-                        }
-                        else if (key.toLowerCase().includes('ijp') || key.toLowerCase().includes('data') || key.toLowerCase().includes('record')) {
-                            console.log(`🤔 Possible IJP data in ${key}, adding to IJP records`);
-                            recoveredData.ijp = [...recoveredData.ijp, ...data];
-                        }
-                    } else if (data && typeof data === 'object' && !Array.isArray(data)) {
-                        if (data.serial_number || data.ijp_type || data.main_machine) {
-                            console.log(`✅ Found single IJP object in ${key}`);
-                            recoveredData.ijp.push(data);
-                        }
-                    }
-                } catch (e) {
-                    console.log(`❌ Error parsing ${key}:`, e.message);
-                }
-            }
-            
-            console.log('Recovery results:', recoveredData);
-            return recoveredData;
-        }
-        
-        function showRecoveryResults(recoveredData) {
-            const totalRecovered = recoveredData.ijp.length + recoveredData.monitoring.length + 
-                                 recoveredData.repair.length + recoveredData.switching.length;
-            
-            if (totalRecovered === 0) {
-                showErrorMessage('❌ Tidak ada data yang bisa di-recover dari browser ini');
-                return;
-            }
-            
-            const modal = document.createElement('div');
-            modal.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0,0,0,0.5);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 1000;
-            `;
-            
-            const dialog = document.createElement('div');
-            dialog.style.cssText = `
-                background: white;
-                padding: 30px;
-                border-radius: 15px;
-                box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-                max-width: 500px;
-                margin: 20px;
-                max-height: 80vh;
-                overflow-y: auto;
-            `;
-            
-            dialog.innerHTML = `
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <h3 style="color: #2d3748; margin-bottom: 10px;">🔍 Data Recovery Results</h3>
-                    <p style="color: #64748b;">Ditemukan data yang bisa di-recover:</p>
-                </div>
-                
-                <div style="background: #f7fafc; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-                    <div style="margin-bottom: 10px;"><strong>📋 IJP Records:</strong> ${recoveredData.ijp.length} data</div>
-                    <div style="margin-bottom: 10px;"><strong>📈 Monitoring:</strong> ${recoveredData.monitoring.length} data</div>
-                    <div style="margin-bottom: 10px;"><strong>🔧 Repair:</strong> ${recoveredData.repair.length} data</div>
-                    <div><strong>🔄 Switching:</strong> ${recoveredData.switching.length} data</div>
-                </div>
-                
-                <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
-                    <div style="color: #856404; font-weight: 600;">⚠️ Perhatian:</div>
-                    <div style="color: #856404; font-size: 0.9rem;">Data akan digabung dengan data existing (jika ada). Pastikan untuk backup setelah recovery!</div>
-                </div>
-                
-                <div style="text-align: center;">
-                    <button id="recoverYes" class="btn" style="margin-right: 10px;">✅ Recover Data</button>
-                    <button id="recoverNo" class="btn btn-secondary">❌ Batal</button>
-                </div>
-            `;
-            
-            modal.appendChild(dialog);
-            document.body.appendChild(modal);
-            
-            document.getElementById('recoverYes').onclick = () => {
-                const existingIJP = getFromStorage(STORAGE_KEYS.ijp);
-                const existingMonitoring = getFromStorage(STORAGE_KEYS.monitoring);
-                const existingRepair = getFromStorage(STORAGE_KEYS.repair);
-                const existingSwitching = getFromStorage(STORAGE_KEYS.switching);
-                
-                const mergedIJP = [...existingIJP];
-                recoveredData.ijp.forEach(item => {
-                    if (!mergedIJP.find(existing => existing.id === item.id || existing.serial_number === item.serial_number)) {
-                        mergedIJP.push(item);
-                    }
-                });
-                
-                const mergedMonitoring = [...existingMonitoring, ...recoveredData.monitoring];
-                const mergedRepair = [...existingRepair, ...recoveredData.repair];
-                const mergedSwitching = [...existingSwitching, ...recoveredData.switching];
-                
-                saveToStorage(STORAGE_KEYS.ijp, mergedIJP);
-                saveToStorage(STORAGE_KEYS.monitoring, mergedMonitoring);
-                saveToStorage(STORAGE_KEYS.repair, mergedRepair);
-                saveToStorage(STORAGE_KEYS.switching, mergedSwitching);
-                
-                document.body.removeChild(modal);
-                showSuccessMessage(`✅ Recovery berhasil! Total ${totalRecovered} data di-recover!`);
-                loadAllData();
-                updateBackupCounts();
-            };
-            
-            document.getElementById('recoverNo').onclick = () => {
-                document.body.removeChild(modal);
-            };
-            
-            modal.onclick = (e) => {
-                if (e.target === modal) {
-                    document.body.removeChild(modal);
-                }
-            };
-        }
-        
-        function tryAutoRecovery() {
-            const recoveredData = attemptDataRecovery();
-            showRecoveryResults(recoveredData);
-        }
-        
-        function autoRunRecovery() {
-            const currentData = getFromStorage(STORAGE_KEYS.ijp);
-            if (currentData.length === 0) {
-                const recoveredData = attemptDataRecovery();
-                const totalRecovered = recoveredData.ijp.length + recoveredData.monitoring.length + 
-                                     recoveredData.repair.length + recoveredData.switching.length;
-                
-                if (totalRecovered > 0) {
-                    saveToStorage(STORAGE_KEYS.ijp, recoveredData.ijp);
-                    saveToStorage(STORAGE_KEYS.monitoring, recoveredData.monitoring);
-                    saveToStorage(STORAGE_KEYS.repair, recoveredData.repair);
-                    saveToStorage(STORAGE_KEYS.switching, recoveredData.switching);
-                    
-                    showSuccessMessage(`🎉 AUTO RECOVERY BERHASIL! Ditemukan ${totalRecovered} data lama!`);
-                    loadAllData();
-                    return true;
-                }
-            }
-            return false;
-        }
-        
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize Supabase
-            initializeSupabase();
-            
-            // Try auto recovery first
-            const recovered = autoRunRecovery();
-            
-            if (!recovered) {
-                loadAllData();
-            }
-            updateBackupCounts();
-            updateSystemInfo();
-        });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99579e7d95817a69',t:'MTc2MTYyNTAwMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9958410be51a44bd',t:'MTc2MTYzMTY1OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
