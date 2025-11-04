@@ -615,7 +615,8 @@
                 if (fetchError) throw fetchError;
                 
                 const currentTime = currentIJP.cummulative_time || 0;
-                const newCummulativeTime = currentTime + monitoringData.additionalTime;
+                const newCummulativeTime = monitoringData.additionalTime;
+
                 
                 // Save to monitoring_log with existing column structure
                 const { data, error } = await supabase
