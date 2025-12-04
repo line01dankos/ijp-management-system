@@ -1,1326 +1,1435 @@
-<!doctype html>
-<html lang="id">
- <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Checklist Harian Anak</title>
-  <script src="/_sdk/element_sdk.js"></script>
-  <script src="/_sdk/data_sdk.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    body {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100%;
-      width: 100%;
-    }
-
-    .app-container {
-      width: 100%;
-      min-height: 100%;
-      background: white;
-    }
-
-    .header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 20px;
-      text-align: center;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-
-    .header h1 {
-      margin: 0;
-      font-size: 28px;
-      font-weight: 600;
-    }
-
-    .sync-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(255,255,255,0.2);
-      padding: 8px 16px;
-      border-radius: 20px;
-      margin-top: 10px;
-      font-size: 14px;
-    }
-
-    .tabs {
-      display: flex;
-      background: #f8f9fa;
-      border-bottom: 2px solid #e9ecef;
-      padding: 0 20px;
-      gap: 10px;
-    }
-
-    .tab {
-      padding: 15px 25px;
-      cursor: pointer;
-      border: none;
-      background: transparent;
-      font-size: 16px;
-      font-weight: 500;
-      color: #6c757d;
-      transition: all 0.3s;
-      border-bottom: 3px solid transparent;
-    }
-
-    .tab:hover {
-      color: #667eea;
-    }
-
-    .tab.active {
-      color: #667eea;
-      border-bottom-color: #667eea;
-    }
-
-    .content {
-      padding: 30px 20px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    .tab-content {
-      display: none;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
-
-    .score-cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
-      margin-bottom: 30px;
-    }
-
-    .score-card {
-      padding: 25px;
-      border-radius: 15px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      text-align: center;
-    }
-
-    .score-card.positive {
-      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-      color: white;
-    }
-
-    .score-card.negative {
-      background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
-      color: white;
-    }
-
-    .score-card.games {
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-      color: white;
-    }
-
-    .score-value {
-      font-size: 36px;
-      font-weight: 700;
-      margin: 10px 0;
-    }
-
-    .score-label {
-      font-size: 14px;
-      opacity: 0.9;
-    }
-
-    .chart-container {
-      background: white;
-      padding: 25px;
-      border-radius: 15px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      margin-bottom: 30px;
-    }
-
-    .filters {
-      display: flex;
-      gap: 15px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-    }
-
-    .filter-group {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
-
-    .filter-group label {
-      font-size: 14px;
-      font-weight: 500;
-      color: #495057;
-    }
-
-    .filter-group input,
-    .filter-group select {
-      padding: 10px 15px;
-      border: 2px solid #e9ecef;
-      border-radius: 8px;
-      font-size: 14px;
-      transition: border-color 0.3s;
-    }
-
-    .filter-group input:focus,
-    .filter-group select:focus {
-      outline: none;
-      border-color: #667eea;
-    }
-
-    .form-container {
-      background: white;
-      padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      max-width: 800px;
-      margin: 0 auto;
-    }
-
-    .form-group {
-      margin-bottom: 25px;
-    }
-
-    .form-group label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 600;
-      color: #495057;
-    }
-
-    .form-group input,
-    .form-group select {
-      width: 100%;
-      padding: 12px 15px;
-      border: 2px solid #e9ecef;
-      border-radius: 8px;
-      font-size: 15px;
-      transition: border-color 0.3s;
-    }
-
-    .form-group input:focus,
-    .form-group select:focus {
-      outline: none;
-      border-color: #667eea;
-    }
-
-    .checklist-section {
-      margin-top: 30px;
-    }
-
-    .checklist-section h3 {
-      color: #495057;
-      margin-bottom: 15px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .checklist-items {
-      display: grid;
-      gap: 10px;
-    }
-
-    .checklist-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 15px;
-      background: #f8f9fa;
-      border-radius: 8px;
-      transition: background 0.3s;
-    }
-
-    .checklist-item:hover {
-      background: #e9ecef;
-    }
-
-    .checklist-item input[type="checkbox"] {
-      width: 20px;
-      height: 20px;
-      cursor: pointer;
-    }
-
-    .checklist-item label {
-      flex: 1;
-      cursor: pointer;
-      margin: 0;
-      font-weight: 400;
-    }
-
-    .checklist-item .menit {
-      font-weight: 600;
-      padding: 5px 10px;
-      border-radius: 5px;
-      font-size: 14px;
-    }
-
-    .checklist-item.positive .menit {
-      background: #38ef7d;
-      color: white;
-    }
-
-    .checklist-item.negative .menit {
-      background: #f45c43;
-      color: white;
-    }
-
-    .btn {
-      padding: 12px 30px;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-    }
-
-    .btn-success {
-      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-      color: white;
-    }
-
-    .btn-danger {
-      background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
-      color: white;
-      padding: 8px 15px;
-      font-size: 14px;
-    }
-
-    .btn-success:hover,
-    .btn-danger:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    }
-
-    .login-container {
-      max-width: 400px;
-      margin: 50px auto;
-      background: white;
-      padding: 40px;
-      border-radius: 15px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      text-align: center;
-    }
-
-    .login-container h2 {
-      color: #495057;
-      margin-bottom: 30px;
-    }
-
-    .kelola-section {
-      background: white;
-      padding: 25px;
-      border-radius: 15px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      margin-bottom: 30px;
-    }
-
-    .kelola-section h3 {
-      color: #495057;
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .kegiatan-list {
-      display: grid;
-      gap: 10px;
-      margin-top: 20px;
-    }
-
-    .kegiatan-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 15px;
-      background: #f8f9fa;
-      border-radius: 8px;
-      border-left: 4px solid;
-    }
-
-    .kegiatan-item.positive {
-      border-left-color: #38ef7d;
-    }
-
-    .kegiatan-item.negative {
-      border-left-color: #f45c43;
-    }
-
-    .kegiatan-info {
-      flex: 1;
-    }
-
-    .kegiatan-name {
-      font-weight: 600;
-      margin-bottom: 5px;
-    }
-
-    .kegiatan-menit {
-      font-size: 14px;
-      color: #6c757d;
-    }
-
-    .toast {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 15px 25px;
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-      display: none;
-      z-index: 1000;
-      animation: slideIn 0.3s ease;
-    }
-
-    .toast.show {
-      display: block;
-    }
-
-    .toast.success {
-      border-left: 4px solid #38ef7d;
-    }
-
-    .toast.error {
-      border-left: 4px solid #f45c43;
-    }
-
-    @keyframes slideIn {
-      from {
-        transform: translateX(100%);
-        opacity: 0;
-      }
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
-
-    .loading {
-      display: none;
-      text-align: center;
-      padding: 20px;
-      color: #667eea;
-    }
-
-    .loading.show {
-      display: block;
-    }
-
-    .spinner {
-      border: 3px solid #f3f3f3;
-      border-top: 3px solid #667eea;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-      margin: 0 auto;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    @media (max-width: 768px) {
-      .header h1 {
-        font-size: 22px;
-      }
-
-      .tabs {
-        overflow-x: auto;
-        padding: 0 10px;
-      }
-
-      .tab {
-        padding: 12px 20px;
-        font-size: 14px;
-      }
-
-      .content {
-        padding: 20px 15px;
-      }
-
-      .score-cards {
-        grid-template-columns: 1fr;
-      }
-
-      .filters {
-        flex-direction: column;
-      }
-    }
-  </style>
-  <style>@view-transition { navigation: auto; }</style>
-  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
- </head>
- <body>
-  <div class="app-container">
-   <div class="header">
-    <h1 id="app-title">Checklist Harian Anak</h1>
-   </div>
-   <div class="tabs"><button class="tab active" data-tab="dashboard">📊 Dashboard</button> <button class="tab" data-tab="input">✏️ Input</button> <button class="tab" data-tab="kelola">⚙️ Kelola Kegiatan</button>
-   </div>
-   <div class="content"><!-- Dashboard Tab -->
-    <div class="tab-content active" id="dashboard">
-     <div class="filters">
-      <div class="filter-group"><label for="filter-start">Tanggal Mulai</label> <input type="date" id="filter-start">
-      </div>
-      <div class="filter-group"><label for="filter-end">Tanggal Akhir</label> <input type="date" id="filter-end">
-      </div>
-      <div class="filter-group"><label for="filter-jenis">Jenis Kegiatan</label> <select id="filter-jenis"> <option value="all">Semua</option> <option value="positif">Positif</option> <option value="negatif">Negatif</option> </select>
-      </div>
-     </div>
-     <div class="score-cards">
-      <div class="score-card positive">
-       <div class="score-label">
-        Total Waktu Positif
-       </div>
-       <div class="score-value" id="total-positif">
-        0
-       </div>
-       <div class="score-label">
-        menit
-       </div>
-      </div>
-      <div class="score-card negative">
-       <div class="score-label">
-        Total Waktu Negatif
-       </div>
-       <div class="score-value" id="total-negatif">
-        0
-       </div>
-       <div class="score-label">
-        menit
-       </div>
-      </div>
-      <div class="score-card games">
-       <div class="score-label">
-        Waktu Main Games
-       </div>
-       <div class="score-value" id="waktu-games">
-        240
-       </div>
-       <div class="score-label">
-        menit
-       </div>
-      </div>
-     </div>
-     <div class="chart-container">
-      <h3 id="dashboard-title" style="color: #495057; margin-bottom: 20px;">Grafik Kegiatan Harian</h3>
-      <canvas id="activityChart"></canvas>
-     </div>
-     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 20px;">
-      <div class="chart-container">
-       <h3 style="color: #495057; margin-bottom: 20px;">📈 Detail Kegiatan Positif</h3>
-       <canvas id="positifChart"></canvas>
-      </div>
-      <div class="chart-container">
-       <h3 style="color: #495057; margin-bottom: 20px;">📉 Detail Kegiatan Negatif</h3>
-       <canvas id="negatifChart"></canvas>
-      </div>
-     </div>
-    </div><!-- Input Tab -->
-    <div class="tab-content" id="input">
-     <div class="form-container">
-      <h2 id="input-title" style="color: #495057; margin-bottom: 30px;">Input Kegiatan Harian</h2>
-      <form id="input-form">
-       <div class="form-group"><label for="input-tanggal">Tanggal</label> <input type="date" id="input-tanggal" required>
-       </div>
-       <div class="checklist-section">
-        <h3>✅ Kegiatan Positif</h3>
-        <div class="checklist-items" id="checklist-positif"></div>
-       </div>
-       <div class="checklist-section">
-        <h3>❌ Kegiatan Negatif</h3>
-        <div class="checklist-items" id="checklist-negatif"></div>
-       </div>
-       <div style="text-align: center; margin-top: 30px;"><button type="submit" class="btn btn-primary">Simpan Kegiatan</button>
-       </div>
-      </form>
-     </div>
-    </div><!-- Kelola Tab -->
-    <div class="tab-content" id="kelola">
-     <div id="login-screen" class="login-container">
-      <h2>🔐 Login Admin</h2>
-      <form id="login-form">
-       <div class="form-group"><label for="password">Password</label> <input type="password" id="password" required placeholder="Masukkan password">
-       </div><button type="submit" class="btn btn-primary">Login</button>
-      </form>
-     </div>
-     <div id="kelola-content" style="display: none;">
-      <div class="kelola-section">
-       <h3>✅ Tambah Kegiatan Positif</h3>
-       <form id="form-positif">
-        <div style="display: grid; grid-template-columns: 1fr 150px auto; gap: 15px; align-items: end;">
-         <div class="form-group" style="margin: 0;"><label for="nama-positif">Nama Kegiatan</label> <input type="text" id="nama-positif" placeholder="Contoh: Belajar" required>
-         </div>
-         <div class="form-group" style="margin: 0;"><label for="menit-positif">Reward (menit)</label> <input type="number" id="menit-positif" min="1" placeholder="30" required>
-         </div><button type="submit" class="btn btn-success">Tambah</button>
-        </div>
-       </form>
-       <div class="kegiatan-list" id="list-positif"></div>
-      </div>
-      <div class="kelola-section">
-       <h3>❌ Tambah Kegiatan Negatif</h3>
-       <form id="form-negatif">
-        <div style="display: grid; grid-template-columns: 1fr 150px auto; gap: 15px; align-items: end;">
-         <div class="form-group" style="margin: 0;"><label for="nama-negatif">Nama Kegiatan</label> <input type="text" id="nama-negatif" placeholder="Contoh: Marah-marah" required>
-         </div>
-         <div class="form-group" style="margin: 0;"><label for="menit-negatif">Sanksi (menit)</label> <input type="number" id="menit-negatif" min="1" placeholder="15" required>
-         </div><button type="submit" class="btn btn-success">Tambah</button>
-        </div>
-       </form>
-       <div class="kegiatan-list" id="list-negatif"></div>
-      </div>
-     </div>
-    </div>
-   </div>
-   <div id="toast" class="toast"></div>
-   <div id="loading" class="loading">
-    <div class="spinner"></div>
-    <p>Menyimpan data...</p>
-   </div><!-- Modal Edit -->
-   <div id="edit-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center;">
-    <div style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; width: 90%;">
-     <h3 style="margin-bottom: 20px; color: #495057;">Edit Kegiatan</h3>
-     <form id="edit-form">
-      <div class="form-group"><label for="edit-nama">Nama Kegiatan</label> <input type="text" id="edit-nama" required>
-      </div>
-      <div class="form-group"><label for="edit-menit">Menit</label> <input type="number" id="edit-menit" min="1" required>
-      </div>
-      <div style="display: flex; gap: 10px; justify-content: flex-end;"><button type="button" class="btn btn-danger" onclick="closeEditModal()">Batal</button> <button type="submit" class="btn btn-primary">Simpan</button>
-      </div>
-     </form>
-    </div>
-   </div><!-- Modal Password -->
-   <div id="password-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center;">
-    <div style="background: white; padding: 30px; border-radius: 15px; max-width: 400px; width: 90%;">
-     <h3 style="margin-bottom: 20px; color: #495057;">🔐 Verifikasi Ayah</h3>
-     <form id="password-form">
-      <div class="form-group"><label for="verify-password">Masukkan Password Ayah</label> <input type="password" id="verify-password" required placeholder="Password">
-      </div>
-      <div style="display: flex; gap: 10px; justify-content: flex-end;"><button type="button" class="btn btn-danger" onclick="closePasswordModal()">Batal</button> <button type="submit" class="btn btn-primary">Verifikasi</button>
-      </div>
-     </form>
-    </div>
-   </div>
-  </div>
-  <script>
-    const defaultConfig = {
-      app_title: "Checklist Harian Anak",
-      dashboard_title: "Grafik Kegiatan Harian",
-      input_title: "Input Kegiatan Harian",
-      kelola_title: "Kelola Kegiatan",
-      webhook_url: "https://gaybffstouojtacnvvyj.supabase.co/rest/v1/kegiatan_anak",
-      anon_key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdheWJmZnN0b3VvanRhY252dnlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ4MTk4OTcsImV4cCI6MjA4MDM5NTg5N30.KR2Jet-HfCI5UmqUODSrWyJAjr0Tveu9XHRPsEubr2g",
-      primary_color: "#667eea",
-      secondary_color: "#764ba2",
-      positive_color: "#38ef7d",
-      negative_color: "#f45c43",
-      games_color: "#f5576c"
-    };
-
-    let activityChart = null;
-    let positifChart = null;
-    let negatifChart = null;
-    let isLoggedIn = false;
-    let allRecords = [];
-    let idleTimer = null;
-
-    const dataHandler = {
-      onDataChanged(data) {
-        allRecords = data;
-        updateDashboard();
-        updateChecklistForms();
-        updateKelolaLists();
-      }
-    };
-
-    async function onConfigChange(config) {
-      const appTitle = config.app_title || defaultConfig.app_title;
-      const dashboardTitle = config.dashboard_title || defaultConfig.dashboard_title;
-      const inputTitle = config.input_title || defaultConfig.input_title;
-
-      document.getElementById('app-title').textContent = appTitle;
-      document.getElementById('dashboard-title').textContent = dashboardTitle;
-      document.getElementById('input-title').textContent = inputTitle;
-
-      const primaryColor = config.primary_color || defaultConfig.primary_color;
-      const secondaryColor = config.secondary_color || defaultConfig.secondary_color;
-      const positiveColor = config.positive_color || defaultConfig.positive_color;
-      const negativeColor = config.negative_color || defaultConfig.negative_color;
-      const gamesColor = config.games_color || defaultConfig.games_color;
-
-      document.querySelector('.header').style.background = `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`;
-      
-      const positiveCards = document.querySelectorAll('.score-card.positive');
-      positiveCards.forEach(card => {
-        card.style.background = `linear-gradient(135deg, #11998e 0%, ${positiveColor} 100%)`;
-      });
-
-      const negativeCards = document.querySelectorAll('.score-card.negative');
-      negativeCards.forEach(card => {
-        card.style.background = `linear-gradient(135deg, #eb3349 0%, ${negativeColor} 100%)`;
-      });
-
-      const gamesCards = document.querySelectorAll('.score-card.games');
-      gamesCards.forEach(card => {
-        card.style.background = `linear-gradient(135deg, #f093fb 0%, ${gamesColor} 100%)`;
-      });
-
-      const allButtons = document.querySelectorAll('.btn-primary');
-      allButtons.forEach(btn => {
-        btn.style.background = `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`;
-      });
-    }
-
-    function mapToCapabilities(config) {
-      return {
-        recolorables: [
-          {
-            get: () => config.primary_color || defaultConfig.primary_color,
-            set: (value) => {
-              config.primary_color = value;
-              window.elementSdk.setConfig({ primary_color: value });
-            }
-          },
-          {
-            get: () => config.secondary_color || defaultConfig.secondary_color,
-            set: (value) => {
-              config.secondary_color = value;
-              window.elementSdk.setConfig({ secondary_color: value });
-            }
-          },
-          {
-            get: () => config.positive_color || defaultConfig.positive_color,
-            set: (value) => {
-              config.positive_color = value;
-              window.elementSdk.setConfig({ positive_color: value });
-            }
-          },
-          {
-            get: () => config.negative_color || defaultConfig.negative_color,
-            set: (value) => {
-              config.negative_color = value;
-              window.elementSdk.setConfig({ negative_color: value });
-            }
-          },
-          {
-            get: () => config.games_color || defaultConfig.games_color,
-            set: (value) => {
-              config.games_color = value;
-              window.elementSdk.setConfig({ games_color: value });
-            }
-          }
-        ],
-        borderables: [],
-        fontEditable: undefined,
-        fontSizeable: undefined
-      };
-    }
-
-    function mapToEditPanelValues(config) {
-      return new Map([
-        ["app_title", config.app_title || defaultConfig.app_title],
-        ["dashboard_title", config.dashboard_title || defaultConfig.dashboard_title],
-        ["input_title", config.input_title || defaultConfig.input_title],
-        ["kelola_title", config.kelola_title || defaultConfig.kelola_title],
-        ["webhook_url", config.webhook_url || defaultConfig.webhook_url],
-        ["anon_key", config.anon_key || defaultConfig.anon_key]
-      ]);
-    }
-
-    async function init() {
-      if (window.elementSdk) {
-        await window.elementSdk.init({
-          defaultConfig,
-          onConfigChange,
-          mapToCapabilities,
-          mapToEditPanelValues
-        });
-      }
-
-      if (window.dataSdk) {
-        const initResult = await window.dataSdk.init(dataHandler);
-        if (!initResult.isOk) {
-          showToast('Gagal menginisialisasi sistem', 'error');
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Management IJP Hitachi PT. Dankos Farma</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            box-sizing: border-box;
         }
-      }
-
-      setupTabs();
-      setupFilters();
-      setupForms();
-      setDefaultDate();
-      initChart();
-      initDetailCharts();
-    }
-
-    function resetIdleTimer() {
-      if (idleTimer) {
-        clearTimeout(idleTimer);
-      }
-      
-      if (isLoggedIn) {
-        idleTimer = setTimeout(() => {
-          isLoggedIn = false;
-          document.getElementById('login-screen').style.display = 'block';
-          document.getElementById('kelola-content').style.display = 'none';
-          showToast('Sesi berakhir karena tidak ada aktivitas.', 'error');
-        }, 15000);
-      }
-    }
-
-    function stopIdleTimer() {
-      if (idleTimer) {
-        clearTimeout(idleTimer);
-        idleTimer = null;
-      }
-    }
-
-    function setupTabs() {
-      const tabs = document.querySelectorAll('.tab');
-      const contents = document.querySelectorAll('.tab-content');
-
-      tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-          const targetTab = tab.dataset.tab;
-
-          tabs.forEach(t => t.classList.remove('active'));
-          contents.forEach(c => c.classList.remove('active'));
-
-          tab.classList.add('active');
-          document.getElementById(targetTab).classList.add('active');
-
-          if (targetTab === 'dashboard') {
-            updateDashboard();
-          }
-
-          if (targetTab !== 'kelola') {
-            stopIdleTimer();
-          } else if (isLoggedIn) {
-            resetIdleTimer();
-          }
-        });
-      });
-    }
-
-    function setDefaultDate() {
-      const today = new Date().toISOString().split('T')[0];
-      document.getElementById('input-tanggal').value = today;
-      document.getElementById('filter-start').value = today;
-      document.getElementById('filter-end').value = today;
-    }
-
-    function setupFilters() {
-      document.getElementById('filter-start').addEventListener('change', updateDashboard);
-      document.getElementById('filter-end').addEventListener('change', updateDashboard);
-      document.getElementById('filter-jenis').addEventListener('change', updateDashboard);
-    }
-
-    function setupForms() {
-      document.getElementById('login-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const password = document.getElementById('password').value;
-        if (password === 'cimenG90') {
-          isLoggedIn = true;
-          document.getElementById('login-screen').style.display = 'none';
-          document.getElementById('kelola-content').style.display = 'block';
-          document.getElementById('password').value = '';
-          showToast('Login berhasil! Auto-lock jika tidak ada aktivitas 15 detik.', 'success');
-          
-          resetIdleTimer();
-
-          const kelolaContent = document.getElementById('kelola-content');
-          kelolaContent.addEventListener('click', resetIdleTimer);
-          kelolaContent.addEventListener('keypress', resetIdleTimer);
-          kelolaContent.addEventListener('input', resetIdleTimer);
-        } else {
-          showToast('Password salah!', 'error');
-        }
-      });
-
-      document.getElementById('input-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await saveChecklist();
-      });
-
-      document.getElementById('form-positif').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await addKegiatan('positif');
-      });
-
-      document.getElementById('form-negatif').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await addKegiatan('negatif');
-      });
-
-      document.getElementById('nama-positif').addEventListener('input', (e) => {
-        e.target.value = e.target.value.toUpperCase();
-      });
-
-      document.getElementById('nama-negatif').addEventListener('input', (e) => {
-        e.target.value = e.target.value.toUpperCase();
-      });
-
-      document.getElementById('edit-nama').addEventListener('input', (e) => {
-        e.target.value = e.target.value.toUpperCase();
-      });
-    }
-
-    async function saveChecklist() {
-      const tanggal = document.getElementById('input-tanggal').value;
-      const checkboxes = document.querySelectorAll('#input-form input[type="checkbox"]:checked');
-
-      if (checkboxes.length === 0) {
-        showToast('Pilih minimal satu kegiatan', 'error');
-        return;
-      }
-
-      if (allRecords.length >= 999) {
-        showToast('Batas maksimal 999 data tercapai. Hapus beberapa data terlebih dahulu.', 'error');
-        return;
-      }
-
-      const parentPassword = await showPasswordPrompt();
-      if (parentPassword !== 'cimenG90') {
-        showToast('Password salah! Hanya Ayah yang bisa menyimpan.', 'error');
-        return;
-      }
-
-      showLoading(true);
-
-      for (const checkbox of checkboxes) {
-        const kegiatanId = checkbox.value;
-        const jenis = checkbox.dataset.jenis;
-        const nama = checkbox.dataset.nama;
-        const menit = parseInt(checkbox.dataset.menit);
-
-        const record = {
-          id: `${tanggal}-${kegiatanId}-${Date.now()}`,
-          tanggal: tanggal,
-          kegiatan_id: kegiatanId,
-          jenis: jenis,
-          nama_kegiatan: nama,
-          menit: menit,
-          completed: true
-        };
-
-        const result = await window.dataSdk.create(record);
-        if (!result.isOk) {
-          showLoading(false);
-          showToast('Gagal menyimpan data', 'error');
-          return;
-        }
-      }
-
-      showLoading(false);
-      showToast('Data berhasil disimpan!', 'success');
-      document.getElementById('input-form').reset();
-      setDefaultDate();
-    }
-
-    async function addKegiatan(jenis) {
-      if (allRecords.length >= 999) {
-        showToast('Batas maksimal 999 data tercapai', 'error');
-        return;
-      }
-
-      const namaInput = document.getElementById(`nama-${jenis}`);
-      const menitInput = document.getElementById(`menit-${jenis}`);
-      const nama = namaInput.value;
-      const menit = parseInt(menitInput.value);
-
-      showLoading(true);
-
-      const record = {
-        id: `kegiatan-${jenis}-${Date.now()}`,
-        tanggal: 'template',
-        kegiatan_id: `${jenis}-${Date.now()}`,
-        jenis: jenis,
-        nama_kegiatan: nama,
-        menit: menit,
-        completed: false
-      };
-
-      const result = await window.dataSdk.create(record);
-      
-      showLoading(false);
-
-      if (result.isOk) {
-        showToast('Kegiatan berhasil ditambahkan!', 'success');
-        namaInput.value = '';
-        menitInput.value = '';
-      } else {
-        showToast('Gagal menambahkan kegiatan', 'error');
-      }
-    }
-
-    async function deleteKegiatan(record) {
-      showLoading(true);
-      const result = await window.dataSdk.delete(record);
-      showLoading(false);
-
-      if (result.isOk) {
-        showToast('Kegiatan berhasil dihapus!', 'success');
-      } else {
-        showToast('Gagal menghapus kegiatan', 'error');
-      }
-    }
-
-    function updateChecklistForms() {
-      const templates = allRecords.filter(r => r.tanggal === 'template');
-      const positif = templates.filter(r => r.jenis === 'positif');
-      const negatif = templates.filter(r => r.jenis === 'negatif');
-
-      const positifContainer = document.getElementById('checklist-positif');
-      const negatifContainer = document.getElementById('checklist-negatif');
-
-      positifContainer.innerHTML = positif.map(k => `
-        <div class="checklist-item positive">
-          <input type="checkbox" id="check-${k.id}" value="${k.kegiatan_id}" data-jenis="${k.jenis}" data-nama="${k.nama_kegiatan}" data-menit="${k.menit}">
-          <label for="check-${k.id}">${k.nama_kegiatan}</label>
-          <span class="menit">+${k.menit} menit</span>
-        </div>
-      `).join('');
-
-      negatifContainer.innerHTML = negatif.map(k => `
-        <div class="checklist-item negative">
-          <input type="checkbox" id="check-${k.id}" value="${k.kegiatan_id}" data-jenis="${k.jenis}" data-nama="${k.nama_kegiatan}" data-menit="${k.menit}">
-          <label for="check-${k.id}">${k.nama_kegiatan}</label>
-          <span class="menit">-${k.menit} menit</span>
-        </div>
-      `).join('');
-    }
-
-    function updateKelolaLists() {
-      const templates = allRecords.filter(r => r.tanggal === 'template');
-      const positif = templates.filter(r => r.jenis === 'positif');
-      const negatif = templates.filter(r => r.jenis === 'negatif');
-
-      const positifList = document.getElementById('list-positif');
-      const negatifList = document.getElementById('list-negatif');
-
-      positifList.innerHTML = positif.map(k => `
-        <div class="kegiatan-item positive">
-          <div class="kegiatan-info">
-            <div class="kegiatan-name">${k.nama_kegiatan}</div>
-            <div class="kegiatan-menit">Reward: +${k.menit} menit</div>
-          </div>
-          <div style="display: flex; gap: 10px;">
-            <button class="btn btn-success" onclick="editKegiatanById('${k.__backendId}')">Edit</button>
-            <button class="btn btn-danger" onclick="deleteKegiatanById('${k.__backendId}')">Hapus</button>
-          </div>
-        </div>
-      `).join('');
-
-      negatifList.innerHTML = negatif.map(k => `
-        <div class="kegiatan-item negative">
-          <div class="kegiatan-info">
-            <div class="kegiatan-name">${k.nama_kegiatan}</div>
-            <div class="kegiatan-menit">Sanksi: -${k.menit} menit</div>
-          </div>
-          <div style="display: flex; gap: 10px;">
-            <button class="btn btn-success" onclick="editKegiatanById('${k.__backendId}')">Edit</button>
-            <button class="btn btn-danger" onclick="deleteKegiatanById('${k.__backendId}')">Hapus</button>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    let currentEditRecord = null;
-    let passwordResolve = null;
-
-    window.deleteKegiatanById = function(backendId) {
-      const record = allRecords.find(r => r.__backendId === backendId);
-      if (record) {
-        deleteKegiatan(record);
-      }
-    };
-
-    window.editKegiatanById = function(backendId) {
-      const record = allRecords.find(r => r.__backendId === backendId);
-      if (record) {
-        currentEditRecord = record;
-        document.getElementById('edit-nama').value = record.nama_kegiatan;
-        document.getElementById('edit-menit').value = record.menit;
-        document.getElementById('edit-modal').style.display = 'flex';
-      }
-    };
-
-    window.closeEditModal = function() {
-      document.getElementById('edit-modal').style.display = 'none';
-      currentEditRecord = null;
-    };
-
-    window.closePasswordModal = function() {
-      document.getElementById('password-modal').style.display = 'none';
-      if (passwordResolve) {
-        passwordResolve(null);
-        passwordResolve = null;
-      }
-    };
-
-    function showPasswordPrompt() {
-      return new Promise((resolve) => {
-        passwordResolve = resolve;
-        document.getElementById('verify-password').value = '';
-        document.getElementById('password-modal').style.display = 'flex';
         
-        document.getElementById('password-form').onsubmit = (e) => {
-          e.preventDefault();
-          const password = document.getElementById('verify-password').value;
-          document.getElementById('password-modal').style.display = 'none';
-          resolve(password);
-          passwordResolve = null;
-        };
-      });
-    }
+        .blink {
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+        
+        .status-rusak {
+            background-color: #dc2626 !important;
+            color: white !important;
+        }
+        
+        .nav-button {
+            transition: all 0.3s ease;
+        }
+        
+        .nav-button.active {
+            background-color: #1e40af;
+            color: white;
+        }
+    </style>
+</head>
+<body class="h-full bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div class="min-h-full">
+        <!-- Header -->
+        <header class="bg-gradient-to-r from-blue-600 to-indigo-700 shadow-lg">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center py-6">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center shadow-lg">
+                                <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div>
+                            <h1 class="text-3xl font-bold text-white">Management IJP Hitachi PT. Dankos Farma</h1>
+                            <p class="text-blue-100 text-sm">Dashboard Management Ink Jet Printer Hitachi V1.1</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-6">
+                        <div class="flex items-center space-x-2 bg-white bg-opacity-20 rounded-full px-4 py-2">
+                            <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                            <span class="text-sm text-white font-medium">Online</span>
+                        </div>
+                        <div class="flex items-center space-x-2 text-white">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span class="text-sm" id="currentTime"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
 
-    document.getElementById('edit-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      if (!currentEditRecord) return;
+        <!-- Navigation -->
+        <nav class="bg-white shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex space-x-8">
+                    <button onclick="showSection('dashboard')" class="nav-button active px-4 py-4 text-sm font-medium text-gray-700 hover:text-blue-600 border-b-2 border-transparent hover:border-blue-600 flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        <span>Dashboard</span>
+                    </button>
+                    <button onclick="showSection('input-ijp')" class="nav-button px-4 py-4 text-sm font-medium text-gray-700 hover:text-blue-600 border-b-2 border-transparent hover:border-blue-600 flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        <span>Input IJP</span>
+                    </button>
+                    <button onclick="showSection('input-monitoring')" class="nav-button px-4 py-4 text-sm font-medium text-gray-700 hover:text-blue-600 border-b-2 border-transparent hover:border-blue-600 flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>Input Monitoring</span>
+                    </button>
+                    <button onclick="showSection('input-repair')" class="nav-button px-4 py-4 text-sm font-medium text-gray-700 hover:text-blue-600 border-b-2 border-transparent hover:border-blue-600 flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        <span>Input Repair</span>
+                    </button>
+                    <button onclick="showSection('input-switching')" class="nav-button px-4 py-4 text-sm font-medium text-gray-700 hover:text-blue-600 border-b-2 border-transparent hover:border-blue-600 flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                        </svg>
+                        <span>Input Penukaran Unit IJP</span>
+                    </button>
+                    <button onclick="showSection('history')" class="nav-button px-4 py-4 text-sm font-medium text-gray-700 hover:text-blue-600 border-b-2 border-transparent hover:border-blue-600 flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>History</span>
+                    </button>
+                </div>
+            </div>
+        </nav>
 
-      const namaUpdate = document.getElementById('edit-nama').value;
-      const menitUpdate = parseInt(document.getElementById('edit-menit').value);
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <!-- Dashboard Section -->
+            <div id="dashboard" class="section">
+                <div class="px-4 py-6 sm:px-0">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Dashboard IJP Management</h2>
+                    
+                    <!-- Scoreboard Section -->
+                    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+                        <div class="bg-white overflow-hidden shadow-xl rounded-lg border-l-4 border-blue-500 hover:shadow-2xl transition-shadow duration-300">
+                            <div class="p-5">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt class="text-sm font-medium text-gray-500 truncate">Total IJP</dt>
+                                            <dd class="text-3xl font-bold text-gray-900" id="totalIJP">0</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-      showLoading(true);
+                        <div class="bg-white overflow-hidden shadow-xl rounded-lg border-l-4 border-green-500 hover:shadow-2xl transition-shadow duration-300">
+                            <div class="p-5">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt class="text-sm font-medium text-gray-500 truncate">IJP Aktif</dt>
+                                            <dd class="text-3xl font-bold text-green-600" id="totalAktif">0</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-      const updatedRecord = {
-        ...currentEditRecord,
-        nama_kegiatan: namaUpdate,
-        menit: menitUpdate
-      };
+                        <div class="bg-white overflow-hidden shadow-xl rounded-lg border-l-4 border-yellow-500 hover:shadow-2xl transition-shadow duration-300">
+                            <div class="p-5">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-12 h-12 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl flex items-center justify-center shadow-lg">
+                                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt class="text-sm font-medium text-gray-500 truncate">Wajib Ganti Filter</dt>
+                                            <dd class="text-3xl font-bold text-yellow-600" id="totalGantiFilter">0</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-      const result = await window.dataSdk.update(updatedRecord);
-      
-      showLoading(false);
+                        <div class="bg-white overflow-hidden shadow-xl rounded-lg border-l-4 border-red-500 hover:shadow-2xl transition-shadow duration-300">
+                            <div class="p-5">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
+                                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt class="text-sm font-medium text-gray-500 truncate">IJP Rusak</dt>
+                                            <dd class="text-3xl font-bold text-red-600" id="totalRusak">0</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Chart Section -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                        <div class="bg-white overflow-hidden shadow-xl rounded-lg">
+                            <div class="px-6 py-4 border-b border-gray-200">
+                                <h3 class="text-lg font-medium text-gray-900">Statistik IJP per Departemen</h3>
+                            </div>
+                            <div class="p-6">
+                                <canvas id="ijpChart" width="400" height="200"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white overflow-hidden shadow-xl rounded-lg">
+                            <div class="px-6 py-4 border-b border-gray-200">
+                                <h3 class="text-lg font-medium text-gray-900">Distribusi Tipe IJP per Departemen</h3>
+                            </div>
+                            <div class="p-6">
+                                <canvas id="ijpTypeChart" width="400" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
 
-      if (result.isOk) {
-        showToast('Kegiatan berhasil diupdate!', 'success');
-        closeEditModal();
-      } else {
-        showToast('Gagal mengupdate kegiatan', 'error');
-      }
-    });
+                    <!-- IJP List by Department -->
+                    <div class="space-y-6">
+                        <div class="bg-white overflow-hidden shadow-xl rounded-lg">
+                            <div class="px-6 py-4 border-b border-gray-200">
+                                <h3 class="text-lg font-medium text-gray-900">Daftar IJP per Departemen</h3>
+                            </div>
+                            <div class="p-6">
+                                <div id="ijpList" class="space-y-6">
+                                    <!-- IJP list will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-    function updateDashboard() {
-      const startDate = document.getElementById('filter-start').value;
-      const endDate = document.getElementById('filter-end').value;
-      const jenisFilter = document.getElementById('filter-jenis').value;
+            <!-- Input IJP Section -->
+            <div id="input-ijp" class="section hidden">
+                <div class="px-4 py-6 sm:px-0">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Input IJP Baru</h2>
+                    
+                    <div class="bg-white overflow-hidden shadow-xl rounded-lg">
+                        <div class="px-6 py-6">
+                            <form id="ijpForm" class="space-y-6">
+                                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                    <div>
+                                        <label for="departemen" class="block text-sm font-medium text-gray-700">Departemen</label>
+                                        <select id="departemen" name="departemen" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="">Pilih Departemen</option>
+                                            <option value="Line 01A">Line 01A</option>
+                                            <option value="Line 01B">Line 01B</option>
+                                            <option value="Line 02">Line 02</option>
+                                            <option value="Line 03">Line 03</option>
+                                            <option value="Line 04">Line 04</option>
+                                            <option value="Line 05">Line 05</option>
+                                            <option value="Line 07">Line 07</option>
+                                        </select>
+                                    </div>
 
-      let filtered = allRecords.filter(r => r.tanggal !== 'template' && r.completed);
+                                    <div>
+                                        <label for="inisialPIC" class="block text-sm font-medium text-gray-700">Inisial PIC</label>
+                                        <input type="text" id="inisialPIC" name="inisialPIC" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
 
-      if (startDate) {
-        filtered = filtered.filter(r => r.tanggal >= startDate);
-      }
-      if (endDate) {
-        filtered = filtered.filter(r => r.tanggal <= endDate);
-      }
-      if (jenisFilter !== 'all') {
-        filtered = filtered.filter(r => r.jenis === jenisFilter);
-      }
+                                    <div>
+                                        <label for="tipeIJP" class="block text-sm font-medium text-gray-700">Tipe IJP</label>
+                                        <select id="tipeIJP" name="tipeIJP" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="">Pilih Tipe IJP</option>
+                                            <option value="PX">PX</option>
+                                            <option value="PXR">PXR</option>
+                                            <option value="RX1">RX1</option>
+                                            <option value="RX2">RX2</option>
+                                            <option value="UX Single">UX Single</option>
+                                            <option value="UX Twin">UX Twin</option>
+                                        </select>
+                                    </div>
 
-      const totalPositif = filtered
-        .filter(r => r.jenis === 'positif')
-        .reduce((sum, r) => sum + r.menit, 0);
+                                    <div>
+                                        <label for="lokasi" class="block text-sm font-medium text-gray-700">Lokasi</label>
+                                        <input type="text" id="lokasi" name="lokasi" placeholder="Contoh: N 2510" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
 
-      const totalNegatif = filtered
-        .filter(r => r.jenis === 'negatif')
-        .reduce((sum, r) => sum + r.menit, 0);
+                                    <div>
+                                        <label for="mesinUtama" class="block text-sm font-medium text-gray-700">Mesin Utama</label>
+                                        <input type="text" id="mesinUtama" name="mesinUtama" placeholder="Contoh: Kunglong 5" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
 
-      const waktuGames = 240 + totalPositif - totalNegatif;
+                                    <div>
+                                        <label for="serialNumber" class="block text-sm font-medium text-gray-700">Serial Number</label>
+                                        <input type="text" id="serialNumber" name="serialNumber" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                </div>
 
-      document.getElementById('total-positif').textContent = totalPositif;
-      document.getElementById('total-negatif').textContent = totalNegatif;
-      document.getElementById('waktu-games').textContent = Math.max(0, waktuGames);
+                                <div class="flex justify-end">
+                                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                                        Simpan IJP
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-      updateChart(filtered);
-      updateDetailCharts(filtered);
-    }
+            <!-- Input Monitoring Section -->
+            <div id="input-monitoring" class="section hidden">
+                <div class="px-4 py-6 sm:px-0">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Input Monitoring</h2>
+                    
+                    <div class="bg-white overflow-hidden shadow-xl rounded-lg">
+                        <div class="px-6 py-6">
+                            <form id="monitoringForm" class="space-y-6">
+                                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                    <div>
+                                        <label for="monitoringPIC" class="block text-sm font-medium text-gray-700">Inisial PIC</label>
+                                        <input type="text" id="monitoringPIC" name="monitoringPIC" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
 
-    function initChart() {
-      const ctx = document.getElementById('activityChart').getContext('2d');
-      activityChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: [],
-          datasets: [
-            {
-              label: 'Kegiatan Positif (menit)',
-              data: [],
-              backgroundColor: '#38ef7d'
-            },
-            {
-              label: 'Kegiatan Negatif (menit)',
-              data: [],
-              backgroundColor: '#f45c43'
+                                    <div>
+                                        <label for="monitoringSerial" class="block text-sm font-medium text-gray-700">Serial Number</label>
+                                        <select id="monitoringSerial" name="monitoringSerial" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="">Pilih Serial Number</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="sm:col-span-2">
+                                        <label for="additionalTime" class="block text-sm font-medium text-gray-700">Cummulative Op. Time (hours)</label>
+                                        <input type="number" id="additionalTime" name="additionalTime" placeholder="Contoh: 100" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                        <p class="mt-1 text-sm text-gray-500">Masukkan nilai Cummulative Op. Time (Hours)</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex justify-end">
+                                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                                        Simpan Monitoring
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Repair Section -->
+            <div id="input-repair" class="section hidden">
+                <div class="px-4 py-6 sm:px-0">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Input Repair</h2>
+                    
+                    <div class="bg-white overflow-hidden shadow-xl rounded-lg">
+                        <div class="px-6 py-6">
+                            <form id="repairForm" class="space-y-6">
+                                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                    <div>
+                                        <label for="repairPIC" class="block text-sm font-medium text-gray-700">Inisial PIC</label>
+                                        <input type="text" id="repairPIC" name="repairPIC" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+
+                                    <div>
+                                        <label for="repairSerial" class="block text-sm font-medium text-gray-700">Serial Number</label>
+                                        <select id="repairSerial" name="repairSerial" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="">Pilih Serial Number</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="sm:col-span-2">
+                                        <label for="kerusakan" class="block text-sm font-medium text-gray-700">Kerusakan</label>
+                                        <textarea id="kerusakan" name="kerusakan" rows="3" placeholder="Jelaskan kerusakan secara detail" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
+                                    </div>
+
+                                    <div class="sm:col-span-2">
+                                        <label for="action" class="block text-sm font-medium text-gray-700">Action</label>
+                                        <textarea id="action" name="action" rows="3" placeholder="Jelaskan action secara detail" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
+                                    </div>
+
+                                    <div class="sm:col-span-2">
+                                        <div class="flex items-center">
+                                            <input id="gantiFilterSet" name="gantiFilterSet" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                            <label for="gantiFilterSet" class="ml-2 block text-sm text-gray-900">
+                                                Ganti Filter Set (Reset Cummulative Op. Time ke 0)
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="flex justify-end">
+                                    <button type="submit" class="bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                                        Simpan Repair
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Switching Section -->
+            <div id="input-switching" class="section hidden">
+                <div class="px-4 py-6 sm:px-0">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Input Penukaran Unit IJP</h2>
+                    
+                    <div class="bg-white overflow-hidden shadow-xl rounded-lg">
+                        <div class="px-6 py-6">
+                            <form id="switchingForm" class="space-y-6">
+                                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                    <div>
+                                        <label for="switchingPIC" class="block text-sm font-medium text-gray-700">Inisial PIC</label>
+                                        <input type="text" id="switchingPIC" name="switchingPIC" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+
+                                    <div>
+                                        <label for="serialDiganti" class="block text-sm font-medium text-gray-700">Serial Number IJP yang akan diganti</label>
+                                        <select id="serialDiganti" name="serialDiganti" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="">Pilih Serial Number (Aktif)</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label for="serialPengganti" class="block text-sm font-medium text-gray-700">Serial Number IJP Pengganti</label>
+                                        <select id="serialPengganti" name="serialPengganti" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="">Pilih Serial Number Pengganti</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="sm:col-span-2">
+                                        <label for="alasanPenggantian" class="block text-sm font-medium text-gray-700">Alasan Penggantian</label>
+                                        <textarea id="alasanPenggantian" name="alasanPenggantian" rows="3" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="flex justify-end">
+                                    <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                                        Simpan Penukaran
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Section -->
+            <div id="history" class="section hidden">
+                <div class="px-4 py-6 sm:px-0">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">History Aktivitas</h2>
+                    
+                    <div class="bg-white overflow-hidden shadow-xl rounded-lg">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <div class="flex justify-between items-center">
+                                <h3 class="text-lg font-medium text-gray-900">Log Semua Aktivitas</h3>
+                                <div class="flex space-x-2">
+                                    <select id="historyFilter" class="text-sm border border-gray-300 rounded px-2 py-1">
+                                        <option value="all">Semua Aktivitas</option>
+                                        <option value="ijp">Input IJP</option>
+                                        <option value="monitoring">Monitoring</option>
+                                        <option value="repair">Repair</option>
+                                        <option value="switching">Penukaran</option>
+                                    </select>
+                                    <button onclick="refreshHistory()" class="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">
+                                        Refresh
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div id="historyList" class="space-y-4">
+                                <!-- History will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Supabase configuration
+        const SUPABASE_URL = 'https://asvbztfrzczgrehmihqf.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzdmJ6dGZyemN6Z3JlaG1paHFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2MjQ2OTMsImV4cCI6MjA3NzIwMDY5M30.w10VaVZIX3CH8IPPsuEtNKqsHMaNWE9FPN3G9mVTsHE';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Data arrays - will be populated from Supabase
+        let ijpData = [];
+        let monitoringData = [];
+        let repairData = [];
+        let switchingData = [];
+        let chartInstance = null;
+        let typeChartInstance = null;
+
+        // Database functions
+        async function loadAllData() {
+            try {
+                // Load IJP data
+                const { data: ijps, error: ijpError } = await supabase
+                    .from('ijp_master')
+                    .select('*')
+                    .order('serial_number');
+                
+                if (ijpError) throw ijpError;
+                
+                // Transform data to match our structure
+                ijpData = ijps ? ijps.map(ijp => ({
+                    id: ijp.id,
+                    departemen: ijp.departemen,
+                    inisialPIC: ijp.inisial_pic,
+                    tipeIJP: ijp.tipe_ijp,
+                    lokasi: ijp.lokasi,
+                    mesinUtama: ijp.mesin_utama,
+                    serialNumber: ijp.serial_number,
+                    cummulativeTime: ijp.cummulative_time || 0,
+                    status: ijp.status || 'AKTIF'
+                })) : [];
+
+                // Load monitoring data
+                const { data: monitoring, error: monitoringError } = await supabase
+                    .from('monitoring_log')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (monitoringError) throw monitoringError;
+                monitoringData = monitoring || [];
+
+                // Load repair data
+                const { data: repairs, error: repairError } = await supabase
+                    .from('repair_log')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (repairError) throw repairError;
+                repairData = repairs || [];
+
+                // Load switching data
+                const { data: switching, error: switchingError } = await supabase
+                    .from('switching_log')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (switchingError) throw switchingError;
+                switchingData = switching || [];
+
+                console.log('Data berhasil dimuat dari Supabase');
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                // Use sample data if database fails
+                ijpData = [
+                    {
+                        id: 1,
+                        departemen: 'Line 01A',
+                        inisialPIC: 'JD',
+                        tipeIJP: 'PX',
+                        lokasi: 'N 2510',
+                        mesinUtama: 'Kunglong 5',
+                        serialNumber: 'PX001A',
+                        cummulativeTime: 9700,
+                        status: 'AKTIF'
+                    },
+                    {
+                        id: 2,
+                        departemen: 'Line 02',
+                        inisialPIC: 'SM',
+                        tipeIJP: 'RX1',
+                        lokasi: 'S 1205',
+                        mesinUtama: 'Heidelberg 3',
+                        serialNumber: 'RX001B',
+                        cummulativeTime: 8500,
+                        status: 'AKTIF'
+                    }
+                ];
             }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: true,
-          scales: {
-            y: {
-              beginAtZero: true
+        }
+
+        async function saveIJP(ijpData) {
+            try {
+                const { data, error } = await supabase
+                    .from('ijp_master')
+                    .insert([{
+                        departemen: ijpData.departemen,
+                        inisial_pic: ijpData.inisialPIC,
+                        tipe_ijp: ijpData.tipeIJP,
+                        lokasi: ijpData.lokasi,
+                        mesin_utama: ijpData.mesinUtama,
+                        serial_number: ijpData.serialNumber,
+                        cummulative_time: ijpData.cummulativeTime || 0,
+                        status: ijpData.status || 'AKTIF'
+                    }])
+                    .select();
+                
+                if (error) throw error;
+                return data[0];
+            } catch (error) {
+                console.error('Error saving IJP:', error);
+                throw error;
             }
-          }
         }
-      });
-    }
 
-    function initDetailCharts() {
-      const ctxPositif = document.getElementById('positifChart').getContext('2d');
-      positifChart = new Chart(ctxPositif, {
-        type: 'bar',
-        data: {
-          labels: [],
-          datasets: [{
-            label: 'Menit',
-            data: [],
-            backgroundColor: '#38ef7d'
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: true,
-          scales: {
-            y: {
-              beginAtZero: true
+        async function saveMonitoring(monitoringData) {
+            try {
+                // Get current cummulative time first
+                const { data: currentIJP, error: fetchError } = await supabase
+                    .from('ijp_master')
+                    .select('cummulative_time')
+                    .eq('serial_number', monitoringData.serialNumber)
+                    .single();
+                
+                if (fetchError) throw fetchError;
+                
+                const currentTime = currentIJP.cummulative_time || 0;
+                const newCummulativeTime = monitoringData.additionalTime;
+
+                
+                // Save to monitoring_log with existing column structure
+                const { data, error } = await supabase
+                    .from('monitoring_log')
+                    .insert([{
+                        inisial_pic: monitoringData.inisialPIC,
+                        serial_number: monitoringData.serialNumber,
+                        cummulative_time: newCummulativeTime
+                    }])
+                    .select();
+                
+                if (error) throw error;
+                
+                // Update IJP cummulative time (accumulate)
+                await supabase
+                    .from('ijp_master')
+                    .update({ cummulative_time: newCummulativeTime })
+                    .eq('serial_number', monitoringData.serialNumber);
+                
+                return data[0];
+            } catch (error) {
+                console.error('Error saving monitoring:', error);
+                throw error;
             }
-          },
-          plugins: {
-            legend: {
-              display: false
+        }
+
+        async function saveRepair(repairData) {
+            try {
+                const { data, error } = await supabase
+                    .from('repair_log')
+                    .insert([{
+                        inisial_pic: repairData.inisialPIC,
+                        serial_number: repairData.serialNumber,
+                        kerusakan: repairData.kerusakan,
+                        action: repairData.action,
+                        ganti_filter_set: repairData.gantiFilterSet
+                    }])
+                    .select();
+                
+                if (error) throw error;
+                
+                // Reset cummulative time if filter changed
+                if (repairData.gantiFilterSet) {
+                    await supabase
+                        .from('ijp_master')
+                        .update({ cummulative_time: 0 })
+                        .eq('serial_number', repairData.serialNumber);
+                }
+                
+                return data[0];
+            } catch (error) {
+                console.error('Error saving repair:', error);
+                throw error;
             }
-          }
         }
-      });
 
-      const ctxNegatif = document.getElementById('negatifChart').getContext('2d');
-      negatifChart = new Chart(ctxNegatif, {
-        type: 'bar',
-        data: {
-          labels: [],
-          datasets: [{
-            label: 'Menit',
-            data: [],
-            backgroundColor: '#f45c43'
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: true,
-          scales: {
-            y: {
-              beginAtZero: true
+        async function saveSwitching(switchingData) {
+            try {
+                const { data, error } = await supabase
+                    .from('switching_log')
+                    .insert([{
+                        inisial_pic: switchingData.inisialPIC,
+                        serial_diganti: switchingData.serialDiganti,
+                        serial_pengganti: switchingData.serialPengganti,
+                        alasan_penggantian: switchingData.alasanPenggantian
+                    }])
+                    .select();
+                
+                if (error) throw error;
+                
+                // Update status if reason contains "rusak"
+                if (switchingData.alasanPenggantian.toLowerCase().includes('rusak')) {
+                    await supabase
+                        .from('ijp_master')
+                        .update({ status: 'RUSAK' })
+                        .eq('serial_number', switchingData.serialDiganti);
+                }
+                
+                return data[0];
+            } catch (error) {
+                console.error('Error saving switching:', error);
+                throw error;
             }
-          },
-          plugins: {
-            legend: {
-              display: false
+        }
+
+        // Auto uppercase functions
+        function setupAutoUppercase() {
+            const upperFields = ['inisialPIC', 'lokasi', 'serialNumber', 'monitoringPIC', 'repairPIC', 'switchingPIC'];
+            
+            upperFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    field.addEventListener('input', function() {
+                        this.value = this.value.toUpperCase();
+                    });
+                }
+            });
+        }
+
+        // Navigation functions
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.remove('hidden');
+            
+            // Update navigation buttons
+            document.querySelectorAll('.nav-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Update dropdowns when switching sections
+            if (sectionId === 'input-monitoring') {
+                updateMonitoringDropdown();
+            } else if (sectionId === 'input-repair') {
+                updateRepairDropdown();
+            } else if (sectionId === 'input-switching') {
+                updateSwitchingDropdowns();
+            } else if (sectionId === 'dashboard') {
+                updateDashboard();
+            } else if (sectionId === 'history') {
+                updateHistory();
             }
-          }
         }
-      });
-    }
 
-    function updateChart(filtered) {
-      const groupedByDate = {};
-
-      filtered.forEach(r => {
-        if (!groupedByDate[r.tanggal]) {
-          groupedByDate[r.tanggal] = { positif: 0, negatif: 0 };
+        // Update dropdowns
+        function updateMonitoringDropdown() {
+            const select = document.getElementById('monitoringSerial');
+            select.innerHTML = '<option value="">Pilih Serial Number</option>';
+            
+            const sortedData = [...ijpData].sort((a, b) => a.serialNumber.localeCompare(b.serialNumber));
+            
+            sortedData.forEach(ijp => {
+                const option = document.createElement('option');
+                option.value = ijp.serialNumber;
+                option.textContent = `${ijp.serialNumber} - ${ijp.mesinUtama} - ${ijp.departemen}`;
+                select.appendChild(option);
+            });
         }
-        if (r.jenis === 'positif') {
-          groupedByDate[r.tanggal].positif += r.menit;
-        } else {
-          groupedByDate[r.tanggal].negatif += r.menit;
+
+        function updateRepairDropdown() {
+            const select = document.getElementById('repairSerial');
+            select.innerHTML = '<option value="">Pilih Serial Number</option>';
+            
+            const sortedData = [...ijpData].sort((a, b) => a.serialNumber.localeCompare(b.serialNumber));
+            
+            sortedData.forEach(ijp => {
+                const option = document.createElement('option');
+                option.value = ijp.serialNumber;
+                option.textContent = `${ijp.serialNumber} - ${ijp.mesinUtama} - ${ijp.departemen}`;
+                select.appendChild(option);
+            });
         }
-      });
 
-      const dates = Object.keys(groupedByDate).sort();
-      const positifData = dates.map(d => groupedByDate[d].positif);
-      const negatifData = dates.map(d => groupedByDate[d].negatif);
-
-      activityChart.data.labels = dates;
-      activityChart.data.datasets[0].data = positifData;
-      activityChart.data.datasets[1].data = negatifData;
-      activityChart.update();
-    }
-
-    function updateDetailCharts(filtered) {
-      const positifRecords = filtered.filter(r => r.jenis === 'positif');
-      const negatifRecords = filtered.filter(r => r.jenis === 'negatif');
-
-      const positifByKegiatan = {};
-      positifRecords.forEach(r => {
-        if (!positifByKegiatan[r.nama_kegiatan]) {
-          positifByKegiatan[r.nama_kegiatan] = 0;
+        function updateSwitchingDropdowns() {
+            const activeSelect = document.getElementById('serialDiganti');
+            const replacementSelect = document.getElementById('serialPengganti');
+            
+            activeSelect.innerHTML = '<option value="">Pilih Serial Number (Aktif)</option>';
+            replacementSelect.innerHTML = '<option value="">Pilih Serial Number Pengganti</option>';
+            
+            const activeIJPs = ijpData.filter(ijp => ijp.status === 'AKTIF').sort((a, b) => a.serialNumber.localeCompare(b.serialNumber));
+            const allIJPs = [...ijpData].sort((a, b) => a.serialNumber.localeCompare(b.serialNumber));
+            
+            activeIJPs.forEach(ijp => {
+                const option = document.createElement('option');
+                option.value = ijp.serialNumber;
+                option.textContent = `${ijp.serialNumber} - ${ijp.mesinUtama} - ${ijp.departemen}`;
+                activeSelect.appendChild(option);
+            });
+            
+            allIJPs.forEach(ijp => {
+                const option = document.createElement('option');
+                option.value = ijp.serialNumber;
+                option.textContent = `${ijp.serialNumber} - ${ijp.mesinUtama} - ${ijp.departemen}`;
+                replacementSelect.appendChild(option);
+            });
+            
+            // Update replacement dropdown when active selection changes
+            activeSelect.addEventListener('change', function() {
+                const selectedSerial = this.value;
+                replacementSelect.innerHTML = '<option value="">Pilih Serial Number Pengganti</option>';
+                
+                allIJPs.filter(ijp => ijp.serialNumber !== selectedSerial).forEach(ijp => {
+                    const option = document.createElement('option');
+                    option.value = ijp.serialNumber;
+                    option.textContent = `${ijp.serialNumber} - ${ijp.mesinUtama} - ${ijp.departemen}`;
+                    replacementSelect.appendChild(option);
+                });
+            });
         }
-        positifByKegiatan[r.nama_kegiatan] += r.menit;
-      });
 
-      const negatifByKegiatan = {};
-      negatifRecords.forEach(r => {
-        if (!negatifByKegiatan[r.nama_kegiatan]) {
-          negatifByKegiatan[r.nama_kegiatan] = 0;
+        // Dashboard functions
+        function updateDashboard() {
+            updateScoreboard();
+            updateChart();
+            updateTypeChart();
+            updateIJPList();
         }
-        negatifByKegiatan[r.nama_kegiatan] += r.menit;
-      });
 
-      const positifLabels = Object.keys(positifByKegiatan);
-      const positifData = Object.values(positifByKegiatan);
+        function updateScoreboard() {
+            const totalIJP = ijpData.length;
+            const totalAktif = ijpData.filter(ijp => ijp.status === 'AKTIF').length;
+            const totalGantiFilter = ijpData.filter(ijp => ijp.cummulativeTime > 9500).length;
+            const totalRusak = ijpData.filter(ijp => ijp.status === 'RUSAK').length;
 
-      const negatifLabels = Object.keys(negatifByKegiatan);
-      const negatifData = Object.values(negatifByKegiatan);
+            document.getElementById('totalIJP').textContent = totalIJP;
+            document.getElementById('totalAktif').textContent = totalAktif;
+            document.getElementById('totalGantiFilter').textContent = totalGantiFilter;
+            document.getElementById('totalRusak').textContent = totalRusak;
+        }
 
-      positifChart.data.labels = positifLabels;
-      positifChart.data.datasets[0].data = positifData;
-      positifChart.update();
+        function updateChart() {
+            const ctx = document.getElementById('ijpChart').getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+            
+            // Group data by department
+            const departmentStats = {};
+            const departments = ['Line 01A', 'Line 01B', 'Line 02', 'Line 03', 'Line 04', 'Line 05', 'Line 07'];
+            
+            departments.forEach(dept => {
+                const deptIJPs = ijpData.filter(ijp => ijp.departemen === dept);
+                departmentStats[dept] = {
+                    total: deptIJPs.length,
+                    aktif: deptIJPs.filter(ijp => ijp.status === 'AKTIF').length,
+                    gantiFilter: deptIJPs.filter(ijp => ijp.cummulativeTime > 9500).length,
+                    rusak: deptIJPs.filter(ijp => ijp.status === 'RUSAK').length
+                };
+            });
+            
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: departments,
+                    datasets: [
+                        {
+                            label: 'Total IJP',
+                            data: departments.map(dept => departmentStats[dept].total),
+                            backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'IJP Aktif',
+                            data: departments.map(dept => departmentStats[dept].aktif),
+                            backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                            borderColor: 'rgba(34, 197, 94, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Harus Ganti Filter',
+                            data: departments.map(dept => departmentStats[dept].gantiFilter),
+                            backgroundColor: 'rgba(251, 191, 36, 0.8)',
+                            borderColor: 'rgba(251, 191, 36, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'IJP Rusak',
+                            data: departments.map(dept => departmentStats[dept].rusak),
+                            backgroundColor: 'rgba(239, 68, 68, 0.8)',
+                            borderColor: 'rgba(239, 68, 68, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Statistik IJP per Departemen'
+                        }
+                    }
+                }
+            });
+        }
 
-      negatifChart.data.labels = negatifLabels;
-      negatifChart.data.datasets[0].data = negatifData;
-      negatifChart.update();
-    }
+        function updateTypeChart() {
+            const ctx = document.getElementById('ijpTypeChart').getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (typeChartInstance) {
+                typeChartInstance.destroy();
+            }
+            
+            // Group data by department and type
+            const departments = ['Line 01A', 'Line 01B', 'Line 02', 'Line 03', 'Line 04', 'Line 05', 'Line 07'];
+            const ijpTypes = ['PX', 'PXR', 'RX1', 'RX2', 'UX Single', 'UX Twin'];
+            
+            const typeStats = {};
+            departments.forEach(dept => {
+                typeStats[dept] = {};
+                ijpTypes.forEach(type => {
+                    typeStats[dept][type] = ijpData.filter(ijp => 
+                        ijp.departemen === dept && ijp.tipeIJP === type
+                    ).length;
+                });
+            });
+            
+            // Create datasets for each IJP type
+            const datasets = ijpTypes.map((type, index) => {
+                const colors = [
+                    'rgba(59, 130, 246, 0.8)',   // Blue
+                    'rgba(34, 197, 94, 0.8)',    // Green
+                    'rgba(251, 191, 36, 0.8)',   // Yellow
+                    'rgba(239, 68, 68, 0.8)',    // Red
+                    'rgba(147, 51, 234, 0.8)',   // Purple
+                    'rgba(236, 72, 153, 0.8)'    // Pink
+                ];
+                
+                return {
+                    label: type,
+                    data: departments.map(dept => typeStats[dept][type]),
+                    backgroundColor: colors[index % colors.length],
+                    borderColor: colors[index % colors.length].replace('0.8', '1'),
+                    borderWidth: 1
+                };
+            });
+            
+            typeChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: departments,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            stacked: false
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Distribusi Tipe IJP per Departemen'
+                        }
+                    }
+                }
+            });
+        }
 
-    function showToast(message, type) {
-      const toast = document.getElementById('toast');
-      toast.textContent = message;
-      toast.className = `toast ${type} show`;
-      setTimeout(() => {
-        toast.classList.remove('show');
-      }, 3000);
-    }
+        function updateIJPList() {
+            const container = document.getElementById('ijpList');
+            container.innerHTML = '';
+            
+            const departments = ['Line 01A', 'Line 01B', 'Line 02', 'Line 03', 'Line 04', 'Line 05', 'Line 07'];
+            
+            departments.forEach(dept => {
+                const deptIJPs = ijpData.filter(ijp => ijp.departemen === dept);
+                
+                if (deptIJPs.length > 0) {
+                    const deptDiv = document.createElement('div');
+                    deptDiv.className = 'border border-gray-200 rounded-lg p-4';
+                    
+                    deptDiv.innerHTML = `
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4">${dept}</h4>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Serial Number</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipe</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mesin Utama</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lokasi</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cummulative Time</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    ${deptIJPs.map(ijp => `
+                                        <tr class="${ijp.cummulativeTime > 9500 ? 'blink bg-yellow-100' : ''}">
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${ijp.serialNumber}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${ijp.tipeIJP}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${ijp.mesinUtama}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${ijp.lokasi}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm ${ijp.cummulativeTime > 9500 ? 'text-red-600 font-bold' : 'text-gray-500'}">${ijp.cummulativeTime} hours</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${ijp.status === 'RUSAK' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}">
+                                                    ${ijp.status}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                    
+                    container.appendChild(deptDiv);
+                }
+            });
+        }
 
-    function showLoading(show) {
-      const loading = document.getElementById('loading');
-      if (show) {
-        loading.classList.add('show');
-      } else {
-        loading.classList.remove('show');
-      }
-    }
+        // Refresh all data and UI
+        async function refreshAllData() {
+            await loadAllData();
+            updateDashboard();
+            updateMonitoringDropdown();
+            updateRepairDropdown();
+            updateSwitchingDropdowns();
+        }
 
-    init();
-  </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a8957344402577a',t:'MTc2NDgzMDcyMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+        // History functions
+        async function loadHistoryData() {
+            try {
+                let allHistory = [];
+                
+                // Load IJP history
+                const { data: ijps } = await supabase
+                    .from('ijp_master')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (ijps) {
+                    ijps.forEach(ijp => {
+                        allHistory.push({
+                            type: 'ijp',
+                            timestamp: ijp.created_at,
+                            pic: ijp.inisial_pic,
+                            serial: ijp.serial_number,
+                            description: `Input IJP baru: ${ijp.tipe_ijp} - ${ijp.mesin_utama} (${ijp.departemen})`,
+                            details: `Lokasi: ${ijp.lokasi}, Status: ${ijp.status}`
+                        });
+                    });
+                }
+                
+                // Load monitoring history
+                const { data: monitoring } = await supabase
+                    .from('monitoring_log')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (monitoring) {
+                    monitoring.forEach(log => {
+                        allHistory.push({
+                            type: 'monitoring',
+                            timestamp: log.created_at,
+                            pic: log.inisial_pic,
+                            serial: log.serial_number,
+                            description: `Update monitoring: ${log.cummulative_time} jam total`,
+                            details: `Cummulative time diupdate menjadi ${log.cummulative_time} jam`
+                        });
+                    });
+                }
+                
+                // Load repair history
+                const { data: repairs } = await supabase
+                    .from('repair_log')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (repairs) {
+                    repairs.forEach(repair => {
+                        allHistory.push({
+                            type: 'repair',
+                            timestamp: repair.created_at,
+                            pic: repair.inisial_pic,
+                            serial: repair.serial_number,
+                            description: `Repair: ${repair.kerusakan.substring(0, 50)}...`,
+                            details: `Action: ${repair.action}${repair.ganti_filter_set ? ' | Filter Set diganti (Reset ke 0 jam)' : ''}`
+                        });
+                    });
+                }
+                
+                // Load switching history
+                const { data: switching } = await supabase
+                    .from('switching_log')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (switching) {
+                    switching.forEach(sw => {
+                        allHistory.push({
+                            type: 'switching',
+                            timestamp: sw.created_at,
+                            pic: sw.inisial_pic,
+                            serial: sw.serial_diganti,
+                            description: `Penukaran IJP: ${sw.serial_diganti} → ${sw.serial_pengganti}`,
+                            details: `Alasan: ${sw.alasan_penggantian}`
+                        });
+                    });
+                }
+                
+                // Sort by timestamp (newest first)
+                allHistory.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                
+                return allHistory;
+                
+            } catch (error) {
+                console.error('Error loading history:', error);
+                return [];
+            }
+        }
+
+        async function updateHistory() {
+            const historyData = await loadHistoryData();
+            const filter = document.getElementById('historyFilter').value;
+            const container = document.getElementById('historyList');
+            
+            const filteredHistory = filter === 'all' ? historyData : historyData.filter(item => item.type === filter);
+            
+            if (filteredHistory.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-8">Belum ada aktivitas</p>';
+                return;
+            }
+            
+            container.innerHTML = filteredHistory.map(item => {
+                const typeColors = {
+                    ijp: 'bg-blue-100 text-blue-800',
+                    monitoring: 'bg-green-100 text-green-800',
+                    repair: 'bg-orange-100 text-orange-800',
+                    switching: 'bg-purple-100 text-purple-800'
+                };
+                
+                const typeLabels = {
+                    ijp: 'INPUT IJP',
+                    monitoring: 'MONITORING',
+                    repair: 'REPAIR',
+                    switching: 'SWITCHING'
+                };
+                
+                const date = new Date(item.timestamp);
+                const formattedDate = date.toLocaleDateString('id-ID', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                return `
+                    <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full ${typeColors[item.type]}">
+                                        ${typeLabels[item.type]}
+                                    </span>
+                                    <span class="text-sm text-gray-500">${formattedDate}</span>
+                                </div>
+                                <h4 class="text-sm font-medium text-gray-900 mb-1">${item.description}</h4>
+                                <p class="text-sm text-gray-600 mb-2">${item.details}</p>
+                                <div class="flex items-center space-x-4 text-xs text-gray-500">
+                                    <span>PIC: ${item.pic}</span>
+                                    <span>Serial: ${item.serial}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function refreshHistory() {
+            await updateHistory();
+            showNotification('History berhasil direfresh!', 'success');
+        }
+
+        // Form handlers with Supabase integration and auto-refresh
+        document.getElementById('ijpForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Menyimpan...';
+            
+            try {
+                const formData = new FormData(this);
+                const newIJP = {
+                    departemen: formData.get('departemen'),
+                    inisialPIC: formData.get('inisialPIC').toUpperCase(),
+                    tipeIJP: formData.get('tipeIJP'),
+                    lokasi: formData.get('lokasi').toUpperCase(),
+                    mesinUtama: formData.get('mesinUtama'),
+                    serialNumber: formData.get('serialNumber').toUpperCase(),
+                    cummulativeTime: 0,
+                    status: 'AKTIF'
+                };
+                
+                await saveIJP(newIJP);
+                await refreshAllData(); // Auto refresh all data
+                this.reset();
+                
+                showNotification('IJP berhasil ditambahkan!', 'success');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Gagal menyimpan IJP: ' + error.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Simpan IJP';
+            }
+        });
+
+        document.getElementById('monitoringForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Menyimpan...';
+            
+            try {
+                const formData = new FormData(this);
+                const monitoringData = {
+                    inisialPIC: formData.get('monitoringPIC').toUpperCase(),
+                    serialNumber: formData.get('monitoringSerial'),
+                    additionalTime: parseInt(formData.get('additionalTime'))
+                };
+                
+                await saveMonitoring(monitoringData);
+                await refreshAllData(); // Auto refresh all data
+                this.reset();
+                
+                showNotification('Data monitoring berhasil disimpan!', 'success');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Gagal menyimpan monitoring: ' + error.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Simpan Monitoring';
+            }
+        });
+
+        document.getElementById('repairForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Menyimpan...';
+            
+            try {
+                const formData = new FormData(this);
+                const repairData = {
+                    inisialPIC: formData.get('repairPIC').toUpperCase(),
+                    serialNumber: formData.get('repairSerial'),
+                    kerusakan: formData.get('kerusakan'),
+                    action: formData.get('action'),
+                    gantiFilterSet: !!formData.get('gantiFilterSet')
+                };
+                
+                await saveRepair(repairData);
+                await refreshAllData(); // Auto refresh all data
+                this.reset();
+                
+                showNotification('Data repair berhasil disimpan!', 'success');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Gagal menyimpan repair: ' + error.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Simpan Repair';
+            }
+        });
+
+        document.getElementById('switchingForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Menyimpan...';
+            
+            try {
+                const formData = new FormData(this);
+                const switchingData = {
+                    inisialPIC: formData.get('switchingPIC').toUpperCase(),
+                    serialDiganti: formData.get('serialDiganti'),
+                    serialPengganti: formData.get('serialPengganti'),
+                    alasanPenggantian: formData.get('alasanPenggantian')
+                };
+                
+                await saveSwitching(switchingData);
+                await refreshAllData(); // Auto refresh all data
+                this.reset();
+                
+                showNotification('Data penukaran berhasil disimpan!', 'success');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Gagal menyimpan penukaran: ' + error.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Simpan Penukaran';
+            }
+        });
+
+        // Notification function
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm ${
+                type === 'success' ? 'bg-green-500 text-white' : 
+                type === 'error' ? 'bg-red-500 text-white' : 
+                'bg-blue-500 text-white'
+            }`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+
+        // Database info function
+        function showDatabaseInfo() {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
+                    <h3 class="text-lg font-bold mb-4">Struktur Database Supabase</h3>
+                    <div class="space-y-4 text-sm">
+                        <div>
+                            <h4 class="font-semibold text-blue-600">Tabel: ijp_master</h4>
+                            <p class="text-gray-600">Kolom: id, departemen, inisial_pic, tipe_ijp, lokasi, mesin_utama, serial_number, cummulative_time, status, created_at</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-blue-600">Tabel: monitoring_log</h4>
+                            <p class="text-gray-600">Kolom: id, inisial_pic, serial_number, cummulative_time, created_at</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-blue-600">Tabel: repair_log</h4>
+                            <p class="text-gray-600">Kolom: id, inisial_pic, serial_number, kerusakan, action, ganti_filter_set, created_at</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-blue-600">Tabel: switching_log</h4>
+                            <p class="text-gray-600">Kolom: id, inisial_pic, serial_diganti, serial_pengganti, alasan_penggantian, created_at</p>
+                        </div>
+                        <div class="bg-yellow-50 p-3 rounded">
+                            <p class="text-yellow-800"><strong>Catatan:</strong> Pastikan tabel-tabel ini sudah dibuat di Supabase dengan struktur yang sesuai. Sistem akan menggunakan data sample jika koneksi database gagal.</p>
+                        </div>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        Tutup
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // Clock function
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('id-ID', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            const dateString = now.toLocaleDateString('id-ID', {
+                weekday: 'short',
+                day: 'numeric',
+                month: 'short'
+            });
+            
+            const clockElement = document.getElementById('currentTime');
+            if (clockElement) {
+                clockElement.innerHTML = `${dateString}<br>${timeString}`;
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async function() {
+            setupAutoUppercase();
+            
+            // Setup clock
+            updateClock();
+            setInterval(updateClock, 1000);
+            
+            // Setup history filter
+            document.getElementById('historyFilter').addEventListener('change', updateHistory);
+            
+            // Show loading indicator
+            showNotification('Memuat data dari Supabase...', 'info');
+            
+            try {
+                await loadAllData();
+                updateDashboard();
+                showNotification('Data berhasil dimuat!', 'success');
+            } catch (error) {
+                console.error('Initialization error:', error);
+                showNotification('Menggunakan data sample karena koneksi database gagal', 'error');
+                updateDashboard();
+            }
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'995955f6666ece32',t:'MTc2MTY0MzAwMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
